@@ -111,7 +111,8 @@
           "telegram_domain",
           "openai_domain",
           "bahamut_domain",
-          "proxy_domain"
+          "proxy_domain",
+          "ai"
         ],
         "server": "fakeip"
       },
@@ -336,7 +337,7 @@
       },
       {
         "rule_set": "ai",
-        "outbound": "ai"
+        "outbound": "openai"
       },
       {
         "rule_set": "bahamut_domain",
@@ -373,11 +374,11 @@
       },
       {
         "package_name": ["com.openai.chatgpt"],
-        "outbound": "ai"
+        "outbound": "openai"
       },
       {
         "package_name": ["com.google.android.apps.bard"],
-        "outbound": "ai"
+        "outbound": "openai"
       }
     ],
     "rule_set": [
