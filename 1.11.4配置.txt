@@ -1,0 +1,450 @@
+  "dns": {
+    "servers":[
+      {
+        "tag": "local",
+        "address": "https://223.5.5.5/dns-query",
+        "detour": "DIRECT"
+      },
+      {
+        "tag": "google",
+        "address": "https://8.8.8.8/dns-query",
+        "detour": "proxy"
+      },
+      {
+        "tag": "cloudflare",
+        "address": "https://1.1.1.1/dns-query",
+        "detour": "proxy"
+      },
+      {
+        "tag": "ali",
+        "address": "https://223.5.5.5/dns-query",
+        "detour": "DIRECT"
+      },
+      {
+        "tag": "block",
+        "address": "rcode://success"
+      }
+    ],
+    "rules":[
+      {
+        "clash_mode": "Direct",
+        "server": "ali"
+      },
+      {
+        "clash_mode": "Global",
+        "server": "google"
+      },
+      {
+        "query_type": "HTTPS",
+        "server": "local"
+      },
+      {
+        "domain_suffix":[
+          ".cn"
+        ],
+        "server": "ali"
+      },
+      {
+        "domain_keyword":[
+          "baidu",
+          "qq",
+          "taobao",
+          "alipay",
+          "weibo",
+          "jd"
+        ],
+        "server": "ali"
+      },
+      {
+        "domain_suffix":[
+          ".google.com",
+          ".youtube.com",
+          ".netflix.com"
+        ],
+        "server": "google"
+      },
+      {
+        "domain_keyword":[
+          "adservice",
+          "analytics",
+          "ad-",
+          "doubleclick"
+        ],
+        "server": "block"
+      }
+    ],
+    "final": "google",
+    "strategy": "ipv4_only",
+    "independent_cache": true
+  },
+  "inbounds":[
+    {
+      "type": "tun",
+      "tag": "tun-in",
+      "address":[
+        "172.19.0.1/30"
+      ],
+      "mtu": 1500,
+      "stack": "mixed",
+      "auto_route": true,
+      "strict_route": true,
+      "sniff": true,
+      "sniff_override_destination": false,
+      "platform": {
+        "http_proxy": {
+          "enabled": true,
+          "server": "127.0.0.1",
+          "server_port": 7890
+        }
+      }
+    },
+    {
+      "type": "mixed",
+      "tag": "mixed-in",
+      "listen": "127.0.0.1",
+      "listen_port": 7890,
+      "sniff": true,
+      "sniff_override_destination": false,
+      "set_system_proxy": false
+    }
+  ],
+  "outbounds":[
+    {
+      "type": "direct",
+      "tag": "DIRECT"
+    },
+    {
+      "type": "block",
+      "tag": "BLOCK"
+    },
+    {
+      "type": "dns",
+      "tag": "DNS-OUT"
+    },
+    {
+      "type": "selector",
+      "tag": "proxy",
+      "outbounds": [],
+      "default": "auto",
+      "interrupt_exist_connections": false
+    },
+    {
+      "type": "urltest",
+      "tag": "auto",
+      "outbounds":[],
+      "url": "https://www.gstatic.com/generate_204",
+      "interval": "3m",
+      "tolerance": 50,
+      "idle_timeout": "30m",
+      "interrupt_exist_connections": false
+    },
+    {
+      "type": "urltest",
+      "tag": "⚡️ CF-Auto-Best",
+      "outbounds":[],
+      "url": "https://www.gstatic.com/generate_204",
+      "interval": "1m",
+      "tolerance": 50,
+      "interrupt_exist_connections": false
+    },
+    {
+      "type": "selector",
+      "tag": "us",
+      "outbounds":[],
+      "interrupt_exist_connections": false
+    },
+    {
+      "type": "selector",
+      "tag": "all",
+      "outbounds":[],
+      "interrupt_exist_connections": false
+    },
+    {
+      "tag": "us-auto",
+      "type": "urltest",
+      "outbounds":[],
+      "url": "https://www.gstatic.com/generate_204",
+      "interval": "1m",
+      "tolerance": 50,
+      "interrupt_exist_connections": false
+    },
+    {
+      "tag": "all-auto",
+      "type": "urltest",
+      "outbounds":[],
+      "url": "https://www.gstatic.com/generate_204",
+      "interval": "1m",
+      "tolerance": 50,
+      "interrupt_exist_connections": false
+    },
+    {
+      "type": "selector",
+      "tag": "google",
+      "outbounds":[
+        "proxy",
+        "DIRECT",
+        "us",
+        "us-auto",
+        "all",
+        "all-auto"
+      ],
+      "default": "proxy",
+      "interrupt_exist_connections": false
+    },
+    {
+      "type": "selector",
+      "tag": "apple",
+      "outbounds":[
+        "proxy",
+        "DIRECT",
+        "us",
+        "us-auto",
+        "all",
+        "all-auto"
+      ],
+      "default": "DIRECT",
+      "interrupt_exist_connections": false
+    },
+    {
+      "type": "selector",
+      "tag": "telegram",
+      "outbounds":[
+        "proxy",
+        "DIRECT",
+        "us",
+        "us-auto",
+        "all",
+        "all-auto"
+      ],
+      "default": "proxy",
+      "interrupt_exist_connections": false
+    },
+    {
+      "type": "selector",
+      "tag": "bilibili",
+      "outbounds":[
+        "proxy",
+        "DIRECT",
+        "us",
+        "us-auto",
+        "all",
+        "all-auto"
+      ],
+      "default": "DIRECT",
+      "interrupt_exist_connections": false
+    },
+    {
+      "type": "selector",
+      "tag": "netflix",
+      "outbounds":[
+        "proxy",
+        "DIRECT",
+        "us",
+        "us-auto",
+        "all",
+        "all-auto"
+      ],
+      "default": "proxy",
+      "interrupt_exist_connections": false
+    },
+    {
+      "type": "selector",
+      "tag": "youtube",
+      "outbounds":[
+        "proxy",
+        "DIRECT",
+        "us",
+        "us-auto",
+        "all",
+        "all-auto"
+      ],
+      "default": "proxy",
+      "interrupt_exist_connections": false
+    },
+    {
+      "type": "selector",
+      "tag": "openai",
+      "outbounds":[
+        "proxy",
+        "DIRECT",
+        "us",
+        "us-auto",
+        "all",
+        "all-auto"
+      ],
+      "default": "proxy",
+      "interrupt_exist_connections": false
+    },
+    {
+      "type": "selector",
+      "tag": "GLOBAL",
+      "outbounds":[
+        "DIRECT",
+        "proxy",
+        "us",
+        "us-auto",
+        "all",
+        "all-auto"
+      ],
+      "default": "DIRECT",
+      "interrupt_exist_connections": false
+    },
+    {
+      "type": "selector",
+      "tag": "final",
+      "outbounds":[
+        "proxy",
+        "DIRECT",
+        "us",
+        "us-auto",
+        "all",
+        "all-auto"
+      ],
+      "default": "proxy",
+      "interrupt_exist_connections": false
+    }
+  ],
+  "route": {
+    "rules":[
+      {
+        "protocol": "dns",
+        "outbound": "DNS-OUT"
+      },
+      {
+        "domain_suffix":[
+          ".t.me",
+          ".telegram.org",
+          ".telegram.me"
+        ],
+        "outbound": "telegram"
+      },
+      {
+        "ip_cidr":[
+          "91.108.4.0/22",
+          "91.108.8.0/22",
+          "91.108.12.0/22",
+          "91.108.16.0/22",
+          "91.108.56.0/22",
+          "149.154.160.0/20"
+        ],
+        "outbound": "telegram"
+      },
+      {
+        "clash_mode": "Direct",
+        "outbound": "DIRECT"
+      },
+      {
+        "clash_mode": "Global",
+        "outbound": "GLOBAL"
+      },
+      {
+        "network": "udp",
+        "port": 443,
+        "outbound": "BLOCK"
+      },
+      {
+        "ip_is_private": true,
+        "outbound": "DIRECT"
+      },
+      {
+        "domain_suffix": [
+          ".cn"
+        ],
+        "outbound": "DIRECT"
+      },
+      {
+        "domain_keyword":[
+          "baidu",
+          "qq",
+          "taobao",
+          "alipay",
+          "weibo",
+          "jd",
+          "tmall"
+        ],
+        "outbound": "DIRECT"
+      },
+      {
+        "domain_suffix":[
+          ".bilibili.com",
+          ".hdslb.com"
+        ],
+        "outbound": "bilibili"
+      },
+      {
+        "domain_suffix":[
+          ".apple.com",
+          ".icloud.com",
+          ".appstore.com"
+        ],
+        "outbound": "apple"
+      },
+      {
+        "domain_keyword":[
+          "adservice",
+          "analytics",
+          "ad-",
+          "doubleclick",
+          "googleads"
+        ],
+        "outbound": "BLOCK"
+      },
+      {
+        "domain_suffix":[
+          ".google.com",
+          ".googleapis.com",
+          ".gstatic.com"
+        ],
+        "outbound": "google"
+      },
+      {
+        "domain_suffix":[
+          ".netflix.com",
+          ".nflxvideo.net",
+          ".nflximg.net"
+        ],
+        "outbound": "netflix"
+      },
+      {
+        "domain_suffix":[
+          ".youtube.com",
+          ".googlevideo.com",
+          ".ytimg.com"
+        ],
+        "outbound": "youtube"
+      },
+      {
+        "domain_suffix":[
+          ".openai.com",
+          ".ai.com"
+        ],
+        "outbound": "openai"
+      },
+      {
+        "ip_cidr":[
+          "1.0.1.0/24",
+          "1.0.2.0/23",
+          "1.1.1.0/24"
+        ],
+        "outbound": "proxy"
+      }
+    ],
+    "final": "proxy",
+    "auto_detect_interface": true,
+    "override_android_vpn": true
+  },
+  "experimental": {
+    "clash_api": {
+      "external_controller": "127.0.0.1:9090",
+      "external_ui": "ui",
+      "external_ui_download_url": "https://ghfast.top/https://github.com/MetaCubeX/metacubexd/archive/refs/heads/gh-pages.zip",
+      "external_ui_download_detour": "DIRECT",
+      "default_mode": "rule"
+    },
+    "cache_file": {
+      "enabled": true,
+      "path": "cache.db",
+      "cache_id": "singbox"
+    }
+  }
+};
