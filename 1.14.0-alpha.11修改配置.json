@@ -74,8 +74,8 @@
     "final": "aldns",
     "strategy": "ipv4_only",
     "reverse_mapping": true,
-    "cache_capacity": 8000,
-    "optimistic": {"enabled": true, "timeout": "3d"}
+    "cache_capacity": 16000,
+    "optimistic": true
   },
   "inbounds": [
     {
@@ -98,7 +98,7 @@
     {
       "type": "selector",
       "tag": "proxy",
-      "outbounds": ["auto", "🚀 CF-优选-Visa", "🚀 CF-优选-DO", "🚀 CF-优选-Shopify", "🚀 CF-优选-Sweden", "🚀 CF-优选-Udemy", "🚀 CF-IP-198段", "🚀 CF-IP-104-A", "🚀 CF-IP-104-Fast1", "🚀 CF-IP-104-Fast2", "🚀 CF-IP-104-Fast3", "🚀 CF-IP-172-Fast", "🚀 CF-IP-162-Fast", "🚀 CF-域名-CFGO", "direct"],
+      "outbounds": ["auto", "🚀 CF-优选-Visa", "🚀 CF-优选-DO","direct"],
       "default": "auto",
       "interrupt_exist_connections": false
     },
@@ -125,37 +125,37 @@
     {"type": "selector", "tag": "cn", "outbounds": ["direct", "proxy"], "default": "direct", "interrupt_exist_connections": false},
     {
       "tag": "🚀 CF-优选-Visa",
-      "server": "CF优选域名",
+      "server": "CF优选域名IP",
       "server_port": 443,
       "type": "vless",
       "uuid": "uuid",
-      "tls": {"enabled": true, "server_name": "域名", "utls": {"enabled": true, "fingerprint": "chrome"}, "insecure": false, "alpn": ["http/1.1"]},
-      "transport": {"type": "ws", "path": "安装路径", "headers": {"Host": "域名"}}
+      "tls": {"enabled": true, "server_name": "反向域名", "utls": {"enabled": true, "fingerprint": "chrome"}, "insecure": false, "alpn": ["http/1.1"]},
+      "transport": {"type": "ws", "path": "路径", "headers": {"Host": "反向域名"}}
     },
     {
       "tag": "🚀 CF-优选-DO",
-      "server": "CF优选域名",
+      "server": "CF优选域名IP",
       "server_port": 443,
       "type": "vless",
       "uuid": "uuid",
-      "tls": {"enabled": true, "server_name": "域名", "utls": {"enabled": true, "fingerprint": "chrome"}, "insecure": false, "alpn": ["http/1.1"]},
-      "transport": {"type": "ws", "path": "安装路径", "headers": {"Host": "域名"}}
+      "tls": {"enabled": true, "server_name": "反向域名", "utls": {"enabled": true, "fingerprint": "chrome"}, "insecure": false, "alpn": ["http/1.1"]},
+      "transport": {"type": "ws", "path": "路径", "headers": {"Host": "反向域名"}}
     }
   ],
   "route": {
     "rules": [
-  {"type": "logical", "mode": "or", "rules": [{"port": 53}, {"protocol": "dns"}], "action": "hijack-dns"},
-  {"action": "sniff"},
-  {
-    "type": "logical",
-    "mode": "and",
-    "rules": [
-      {"protocol": "quic"},
-      {"rule_set": "youtube_domain", "invert": true}
-    ],
-    "action": "reject"
-  },
-  {"domain_suffix": ["miwifi.com"], "outbound": "direct"},
+      {"type": "logical", "mode": "or", "rules": [{"port": 53}, {"protocol": "dns"}], "action": "hijack-dns"},
+      {"action": "sniff"},
+      {
+        "type": "logical",
+        "mode": "and",
+        "rules": [
+          {"protocol": "quic"},
+          {"rule_set": "youtube_domain", "invert": true}
+        ],
+        "action": "reject"
+      },
+      {"domain_suffix": ["miwifi.com"], "outbound": "direct"},
       {"clash_mode": "direct", "outbound": "direct"},
       {"clash_mode": "global", "outbound": "GLOBAL"},
       {"ip_is_private": true, "outbound": "direct"},
@@ -217,7 +217,7 @@
       "enabled": true,
       "path": "cache.db",
       "cache_id": "cinchov",
-      "store_fakeip": true
+      "store_dns": true
     }
   }
 }
