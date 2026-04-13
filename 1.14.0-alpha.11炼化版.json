@@ -1,6 +1,6 @@
 {
   "log": {
-    "level": "trace",
+    "level": "error",
     "timestamp": true
   },
   "ntp": {
@@ -98,7 +98,7 @@
       "type": "tun",
       "tag": "tun-in",
       "address": ["10.8.0.1/24"],
-      "mtu": 1500,
+      "mtu": 9000,
       "stack": "mixed",
       "auto_route": true,
       "strict_route": true
@@ -117,6 +117,7 @@
       "tag": "PROXY",
       "outbounds": [
         "AUTO",
+        "DIRECT"
       ],
       "default": "AUTO",
       "interrupt_exist_connections": false
@@ -125,7 +126,7 @@
       "type": "urltest",
       "tag": "AUTO",
       "outbounds": [
-      
+        
       ],
       "url": "https://cp.cloudflare.com/generate_204",
       "interval": "10m",
@@ -222,91 +223,104 @@
         "type": "remote",
         "format": "binary",
         "url": "https://github.boki.moe/https://github.com/DustinWin/ruleset_geodata/releases/download/sing-box-ruleset/proxy.srs",
-        "download_detour": "DIRECT"
+        "download_detour": "DIRECT",
+        "update_interval": "48h"
       },
       {
         "tag": "games",
         "type": "remote",
         "format": "binary",
         "url": "https://github.boki.moe/https://github.com/DustinWin/ruleset_geodata/releases/download/sing-box-ruleset/games.srs",
-        "download_detour": "DIRECT"
+        "download_detour": "DIRECT",
+        "update_interval": "48h"
       },
       {
         "tag": "ai",
         "type": "remote",
         "format": "binary",
         "url": "https://github.boki.moe/https://github.com/DustinWin/ruleset_geodata/releases/download/sing-box-ruleset/ai.srs",
-        "download_detour": "DIRECT"
+        "download_detour": "DIRECT",
+        "update_interval": "48h"
       },
       {
         "tag": "private",
         "type": "remote",
         "format": "binary",
         "url": "https://github.boki.moe/https://github.com/DustinWin/ruleset_geodata/releases/download/sing-box-ruleset/private.srs",
-        "download_detour": "DIRECT"
+        "download_detour": "DIRECT",
+        "update_interval": "48h"
       },
       {
         "tag": "cn",
         "type": "remote",
         "format": "binary",
         "url": "https://github.boki.moe/https://github.com/DustinWin/ruleset_geodata/releases/download/sing-box-ruleset/cn.srs",
-        "download_detour": "DIRECT"
+        "download_detour": "DIRECT",
+        "update_interval": "48h"
       },
       {
         "tag": "microsoft-cn",
         "type": "remote",
         "format": "binary",
         "url": "https://github.boki.moe/https://github.com/DustinWin/ruleset_geodata/releases/download/sing-box-ruleset/microsoft-cn.srs",
-        "download_detour": "DIRECT"
+        "download_detour": "DIRECT",
+        "update_interval": "48h"
       },
       {
         "tag": "apple-cn",
         "type": "remote",
         "format": "binary",
         "url": "https://github.boki.moe/https://github.com/DustinWin/ruleset_geodata/releases/download/sing-box-ruleset/apple-cn.srs",
-        "download_detour": "DIRECT"
+        "download_detour": "DIRECT",
+        "update_interval": "48h"
       },
       {
         "tag": "google-cn",
         "type": "remote",
         "format": "binary",
         "url": "https://github.boki.moe/https://github.com/DustinWin/ruleset_geodata/releases/download/sing-box-ruleset/google-cn.srs",
-        "download_detour": "DIRECT"
+        "download_detour": "DIRECT",
+        "update_interval": "48h"
       },
       {
         "tag": "games-cn",
         "type": "remote",
         "format": "binary",
         "url": "https://github.boki.moe/https://github.com/DustinWin/ruleset_geodata/releases/download/sing-box-ruleset/games-cn.srs",
-        "download_detour": "DIRECT"
+        "download_detour": "DIRECT",
+        "update_interval": "48h"
       },
       {
         "tag": "networktest",
         "type": "remote",
         "format": "binary",
         "url": "https://github.boki.moe/https://github.com/DustinWin/ruleset_geodata/releases/download/sing-box-ruleset/networktest.srs",
-        "download_detour": "DIRECT"
+        "download_detour": "DIRECT",
+        "update_interval": "48h"
       },
       {
         "tag": "telegramip",
         "type": "remote",
         "format": "binary",
         "url": "https://github.boki.moe/https://github.com/DustinWin/ruleset_geodata/releases/download/sing-box-ruleset/telegramip.srs",
-        "download_detour": "DIRECT"
+        "download_detour": "DIRECT",
+        "update_interval": "48h"
       },
       {
         "tag": "youtube_domain",
         "type": "remote",
         "format": "binary",
         "url": "https://github.boki.moe/https://github.com/DustinWin/ruleset_geodata/releases/download/sing-box-ruleset/youtube.srs",
-        "download_detour": "DIRECT"
+        "download_detour": "DIRECT",
+        "update_interval": "48h"
       },
       {
         "tag": "cnip",
         "type": "remote",
         "format": "binary",
         "url": "https://github.boki.moe/https://github.com/DustinWin/ruleset_geodata/releases/download/sing-box-ruleset/cnip.srs",
-        "download_detour": "DIRECT"
+        "download_detour": "DIRECT",
+        "update_interval": "48h"
       }
     ],
     "final": "PROXY",
