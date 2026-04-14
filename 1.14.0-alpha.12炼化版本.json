@@ -112,8 +112,7 @@
           "A",
           "AAAA"
         ],
-        "server": "ggdns",
-        "client_subnet": "119.134.100.0/24"
+        "server": "fakeip"
       },
       {
         "rule_set": [
@@ -125,7 +124,8 @@
           "A",
           "AAAA"
         ],
-        "server": "fakeip"
+        "server": "ggdns",
+        "client_subnet": "119.134.100.0/24"
       },
       {
         "domain_suffix": [
@@ -153,10 +153,6 @@
       },
       {
         "action": "evaluate",
-        "server": "local"
-      },
-      {
-        "action": "evaluate",
         "server": "alidns"
       },
       {
@@ -166,12 +162,6 @@
           {
             "match_response": true,
             "ip_is_private": true
-          },
-          {
-            "match_response": true,
-            "rule_set": [
-              "cnip"
-            ]
           }
         ],
         "action": "respond"
@@ -195,7 +185,7 @@
       "address": [
         "10.8.0.1/24"
       ],
-      "mtu": 9000,
+      "mtu": 1500,
       "stack": "mixed",
       "auto_route": true,
       "strict_route": true
@@ -226,9 +216,9 @@
       "type": "urltest",
       "tag": "AUTO",
       "outbounds": [
-
+        
       ],
-      "url": "https://cp.cloudflare.com/generate_204",
+      "url": "http://www.gstatic.com/generate_204",
       "interval": "10m",
       "tolerance": 50,
       "idle_timeout": "30m",
@@ -253,7 +243,7 @@
       ],
       "default": "DIRECT",
       "interrupt_exist_connections": false
-    }
+    },
   ],
   "route": {
     "default_domain_resolver": "alidns",
@@ -316,15 +306,15 @@
         "outbound": "PROXY"
       },
       {
-        "rule_set": "geosite-google",
-        "outbound": "PROXY"
-      },
-      {
         "rule_set": [
           "geosite_adguard",
           "geosite-category-ads-all"
         ],
         "action": "reject"
+      },
+      {
+        "rule_set": "geosite-google",
+        "outbound": "PROXY"
       },
       {
         "domain_suffix": [
@@ -392,7 +382,7 @@
         "tag": "geosite-category-ads-all",
         "type": "remote",
         "format": "binary",
-        "url": "https://zzz.372164885.xyz/https://raw.githubusercontent.com/SagerNet/sing-geosite/rule-set/geosite-category-ads-all.srs",
+        "url": "https://cdn.jsdelivr.net/gh/SagerNet/sing-geosite@rule-set/geosite-category-ads-all.srs",
         "download_detour": "PROXY",
         "update_interval": "48h"
       },
@@ -400,7 +390,7 @@
         "tag": "geosite_adguard",
         "type": "remote",
         "format": "binary",
-        "url": "https://zzz.372164885.xyz/https://raw.githubusercontent.com/217heidai/adblockfilters/main/rules/adblocksingbox.srs",
+        "url": "https://cdn.jsdelivr.net/gh/217heidai/adblockfilters@main/rules/adblocksingbox.srs",
         "download_detour": "PROXY",
         "update_interval": "48h"
       },
@@ -408,7 +398,7 @@
         "tag": "geosite-google",
         "type": "remote",
         "format": "binary",
-        "url": "https://zzz.372164885.xyz/https://github.com/SagerNet/sing-geosite/raw/rule-set/geosite-google.srs",
+        "url": "https://cdn.jsdelivr.net/gh/SagerNet/sing-geosite@rule-set/geosite-google.srs",
         "download_detour": "PROXY",
         "update_interval": "48h"
       },
@@ -416,7 +406,7 @@
         "tag": "proxy",
         "type": "remote",
         "format": "binary",
-        "url": "https://zzz.372164885.xyz/https://github.com/DustinWin/ruleset_geodata/releases/download/sing-box-ruleset/proxy.srs",
+        "url": "https://cdn.jsdelivr.net/gh/DustinWin/ruleset_geodata@sing-box-ruleset/proxy.srs",
         "download_detour": "PROXY",
         "update_interval": "48h"
       },
@@ -424,15 +414,15 @@
         "tag": "games",
         "type": "remote",
         "format": "binary",
-        "url": "https://zzz.372164885.xyz/https://github.com/DustinWin/ruleset_geodata/releases/download/sing-box-ruleset/games.srs",
-        "download_detour": "DIRECT",
+        "url": "https://cdn.jsdelivr.net/gh/DustinWin/ruleset_geodata@sing-box-ruleset/games.srs",
+        "download_detour": "PROXY",
         "update_interval": "48h"
       },
       {
         "tag": "ai",
         "type": "remote",
         "format": "binary",
-        "url": "https://zzz.372164885.xyz/https://github.com/DustinWin/ruleset_geodata/releases/download/sing-box-ruleset/ai.srs",
+        "url": "https://cdn.jsdelivr.net/gh/DustinWin/ruleset_geodata@sing-box-ruleset/ai.srs",
         "download_detour": "PROXY",
         "update_interval": "48h"
       },
@@ -440,7 +430,7 @@
         "tag": "private",
         "type": "remote",
         "format": "binary",
-        "url": "https://zzz.372164885.xyz/https://github.com/DustinWin/ruleset_geodata/releases/download/sing-box-ruleset/private.srs",
+        "url": "https://cdn.jsdelivr.net/gh/DustinWin/ruleset_geodata@sing-box-ruleset/private.srs",
         "download_detour": "PROXY",
         "update_interval": "48h"
       },
@@ -448,7 +438,7 @@
         "tag": "cn",
         "type": "remote",
         "format": "binary",
-        "url": "https://zzz.372164885.xyz/https://github.com/DustinWin/ruleset_geodata/releases/download/sing-box-ruleset/cn.srs",
+        "url": "https://cdn.jsdelivr.net/gh/DustinWin/ruleset_geodata@sing-box-ruleset/cn.srs",
         "download_detour": "PROXY",
         "update_interval": "48h"
       },
@@ -456,7 +446,7 @@
         "tag": "microsoft-cn",
         "type": "remote",
         "format": "binary",
-        "url": "https://zzz.372164885.xyz/https://github.com/DustinWin/ruleset_geodata/releases/download/sing-box-ruleset/microsoft-cn.srs",
+        "url": "https://cdn.jsdelivr.net/gh/DustinWin/ruleset_geodata@sing-box-ruleset/microsoft-cn.srs",
         "download_detour": "PROXY",
         "update_interval": "48h"
       },
@@ -464,7 +454,7 @@
         "tag": "apple-cn",
         "type": "remote",
         "format": "binary",
-        "url": "https://zzz.372164885.xyz/https://github.com/DustinWin/ruleset_geodata/releases/download/sing-box-ruleset/apple-cn.srs",
+        "url": "https://cdn.jsdelivr.net/gh/DustinWin/ruleset_geodata@sing-box-ruleset/apple-cn.srs",
         "download_detour": "PROXY",
         "update_interval": "48h"
       },
@@ -472,7 +462,7 @@
         "tag": "google-cn",
         "type": "remote",
         "format": "binary",
-        "url": "https://zzz.372164885.xyz/https://github.com/DustinWin/ruleset_geodata/releases/download/sing-box-ruleset/google-cn.srs",
+        "url": "https://cdn.jsdelivr.net/gh/DustinWin/ruleset_geodata@sing-box-ruleset/google-cn.srs",
         "download_detour": "PROXY",
         "update_interval": "48h"
       },
@@ -480,7 +470,7 @@
         "tag": "games-cn",
         "type": "remote",
         "format": "binary",
-        "url": "https://zzz.372164885.xyz/https://github.com/DustinWin/ruleset_geodata/releases/download/sing-box-ruleset/games-cn.srs",
+        "url": "https://cdn.jsdelivr.net/gh/DustinWin/ruleset_geodata@sing-box-ruleset/games-cn.srs",
         "download_detour": "PROXY",
         "update_interval": "48h"
       },
@@ -488,7 +478,7 @@
         "tag": "networktest",
         "type": "remote",
         "format": "binary",
-        "url": "https://zzz.372164885.xyz/https://github.com/DustinWin/ruleset_geodata/releases/download/sing-box-ruleset/networktest.srs",
+        "url": "https://cdn.jsdelivr.net/gh/DustinWin/ruleset_geodata@sing-box-ruleset/networktest.srs",
         "download_detour": "PROXY",
         "update_interval": "48h"
       },
@@ -496,7 +486,7 @@
         "tag": "telegramip",
         "type": "remote",
         "format": "binary",
-        "url": "https://zzz.372164885.xyz/https://github.com/DustinWin/ruleset_geodata/releases/download/sing-box-ruleset/telegramip.srs",
+        "url": "https://cdn.jsdelivr.net/gh/DustinWin/ruleset_geodata@sing-box-ruleset/telegramip.srs",
         "download_detour": "PROXY",
         "update_interval": "48h"
       },
@@ -504,7 +494,7 @@
         "tag": "cnip",
         "type": "remote",
         "format": "binary",
-        "url": "https://zzz.372164885.xyz/https://github.com/DustinWin/ruleset_geodata/releases/download/sing-box-ruleset/cnip.srs",
+        "url": "https://cdn.jsdelivr.net/gh/DustinWin/ruleset_geodata@sing-box-ruleset/cnip.srs",
         "download_detour": "PROXY",
         "update_interval": "48h"
       }
@@ -516,7 +506,7 @@
     "clash_api": {
       "external_controller": "127.0.0.1:9090",
       "external_ui": "ui",
-      "external_ui_download_url": "https://zzz.372164885.xyz/https://github.com/MetaCubeX/metacubexd/archive/refs/heads/gh-pages.zip",
+      "external_ui_download_url": "https://cdn.jsdelivr.net/gh/MetaCubeX/metacubexd@gh-pages/metacubexd.zip",
       "external_ui_download_detour": "PROXY",
       "secret": "kSDuU2WHyf72taGMdDS0ib6klwFVF5QIM4HGhS5f4Jw=",
       "default_mode": "rule"
