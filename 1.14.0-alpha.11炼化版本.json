@@ -175,12 +175,10 @@
         "action": "respond"
       },
       {
-        "query_type": [
-          "A",
-          "AAAA"
-        ],
-        "server": "fakeip",
-        "rewrite_ttl": 1
+         "rule_set": ["proxy", "games", "ai"],
+         "query_type": ["A", "AAAA"],
+         "server": "fakeip",
+         "rewrite_ttl": 1
       }
     ],
     "final": "alidns",
