@@ -126,6 +126,7 @@
       "tag": "PROXY",
       "outbounds": [
         "AUTO",
+        // 请在此填入你的机场节点或自建节点标签
         "DIRECT"
       ],
       "default": "AUTO",
@@ -135,7 +136,7 @@
       "type": "urltest",
       "tag": "AUTO",
       "outbounds": [
-
+      // 请在此填入你的机场节点或自建节点标签
       ],
       "url": "https://cp.cloudflare.com/generate_204",
       "interval": "10m",
@@ -157,7 +158,7 @@
       "default": "DIRECT",
       "interrupt_exist_connections": false
     },
-    
+    // 请在此填入你的机场节点或自建节点标签
   ],
   "route": {
     "default_domain_resolver": "alidns",
