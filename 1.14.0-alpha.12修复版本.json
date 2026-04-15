@@ -75,7 +75,7 @@
           "geosite_adguard",
           "geosite-category-ads-all"
         ],
-        "action": "predefined"
+        "action": "reject"
       },
       {
         "domain_suffix": [
@@ -207,6 +207,8 @@
       "tag": "PROXY",
       "outbounds": [
         "AUTO",
+        "🚀 CF-优选-Visa",
+        "🚀 CF-优选-DO",
         "DIRECT"
       ],
       "default": "AUTO",
@@ -216,7 +218,8 @@
       "type": "urltest",
       "tag": "AUTO",
       "outbounds": [
-        
+        "🚀 CF-优选-Visa",
+        "🚀 CF-优选-DO"
       ],
       "url": "http://www.gstatic.com/generate_204",
       "interval": "10m",
@@ -244,6 +247,56 @@
       "default": "DIRECT",
       "interrupt_exist_connections": false
     },
+    {
+      "tag": "🚀 CF-优选-Visa",
+      "server": "CF优选域名IP",
+      "server_port": 443,
+      "type": "vless",
+      "uuid": "uuid",
+      "transport": {
+        "type": "ws",
+        "path": "/路径",
+        "headers": {
+          "Host": "节点域名"
+        }
+      },
+      "tls": {
+        "enabled": true,
+        "server_name": "节点域名",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        },
+        "alpn": [
+          "http/1.1"
+        ]
+      }
+    },
+    {
+      "tag": "🚀 CF-优选-DO",
+      "server": "CF优选域名IP",
+      "server_port": 443,
+      "type": "vless",
+      "uuid": "uuid",
+      "transport": {
+        "type": "ws",
+        "path": "/路径",
+        "headers": {
+          "Host": "节点域名"
+        }
+      },
+      "tls": {
+        "enabled": true,
+        "server_name": "节点域名",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        },
+        "alpn": [
+          "http/1.1"
+        ]
+      }
+    }
   ],
   "route": {
     "default_domain_resolver": "alidns",
@@ -264,6 +317,7 @@
       {
         "action": "sniff"
       },
+      // ★ 放行 YouTube QUIC，让浏览器自行决定（实际会因节点不支持UDP而失败，但规则层面放行）
       {
         "type": "logical",
         "mode": "and",
@@ -275,8 +329,22 @@
             "port": 443
           },
           {
-            "rule_set": "geosite-google",
-            "invert": true
+            "rule_set": "geosite-youtube"
+          }
+        ],
+        "action": "route",
+        "outbound": "PROXY"
+      },
+      // ★ 拒绝其他所有 QUIC，强制降级 TCP
+      {
+        "type": "logical",
+        "mode": "and",
+        "rules": [
+          {
+            "protocol": "quic"
+          },
+          {
+            "port": 443
           }
         ],
         "action": "reject"
@@ -399,6 +467,14 @@
         "type": "remote",
         "format": "binary",
         "url": "https://cdn.jsdelivr.net/gh/SagerNet/sing-geosite@rule-set/geosite-google.srs",
+        "download_detour": "PROXY",
+        "update_interval": "48h"
+      },
+      {
+        "tag": "geosite-youtube",
+        "type": "remote",
+        "format": "binary",
+        "url": "https://cdn.jsdelivr.net/gh/SagerNet/sing-geosite@rule-set/geosite-youtube.srs",
         "download_detour": "PROXY",
         "update_interval": "48h"
       },
