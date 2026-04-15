@@ -143,11 +143,15 @@
         "server": "fakeip"
       },
       {
-        "clash_mode": "direct",
+        "clash_mode": [
+          "direct"
+        ],
         "server": "alidns"
       },
       {
-        "clash_mode": "global",
+        "clash_mode": [
+          "global"
+        ],
         "server": "fakeip"
       }
     ],
@@ -254,7 +258,7 @@
     },
     {
       "tag": "🚀 CF-优选-DO",
-      "server": "CF优选域名",
+      "server": "CF优选域名IP",
       "server_port": 443,
       "type": "vless",
       "uuid": "uuid",
@@ -318,11 +322,15 @@
         "outbound": "DIRECT"
       },
       {
-        "clash_mode": "direct",
+        "clash_mode": [
+          "direct"
+        ],
         "outbound": "DIRECT"
       },
       {
-        "clash_mode": "global",
+        "clash_mode": [
+          "global"
+        ],
         "outbound": "GLOBAL"
       },
       {
@@ -553,7 +561,9 @@
       "enabled": true,
       "path": "cache.db",
       "cache_id": "cinchov",
-      "store_fakeip": true
-    }
+      "store_fakeip": true,
+      "store_dns": true
+    },
+    "urltest_unified_delay": true
   }
 }
