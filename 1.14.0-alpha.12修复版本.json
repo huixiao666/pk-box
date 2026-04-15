@@ -47,8 +47,7 @@
         "tag": "ggdns",
         "type": "https",
         "server": "dns.google",
-        "domain_resolver": "hosts_fix",
-        "detour": "PROXY"
+        "domain_resolver": "hosts_fix"
       },
       {
         "tag": "fakeip",
@@ -200,7 +199,8 @@
   "outbounds": [
     {
       "type": "direct",
-      "tag": "DIRECT"
+      "tag": "DIRECT",
+      "domain_resolver": "alidns"
     },
     {
       "type": "selector",
@@ -253,6 +253,7 @@
       "server_port": 443,
       "type": "vless",
       "uuid": "uuid",
+      "domain_resolver": "alidns",
       "transport": {
         "type": "ws",
         "path": "/路径",
@@ -262,7 +263,7 @@
       },
       "tls": {
         "enabled": true,
-        "server_name": "节点域名",
+        "server_name": "cvb.372164885.xyz",
         "utls": {
           "enabled": true,
           "fingerprint": "chrome"
@@ -278,6 +279,7 @@
       "server_port": 443,
       "type": "vless",
       "uuid": "uuid",
+      "domain_resolver": "alidns",
       "transport": {
         "type": "ws",
         "path": "/路径",
@@ -317,25 +319,6 @@
       {
         "action": "sniff"
       },
-      // ★ 放行 YouTube QUIC，让浏览器自行决定（实际会因节点不支持UDP而失败，但规则层面放行）
-      {
-        "type": "logical",
-        "mode": "and",
-        "rules": [
-          {
-            "protocol": "quic"
-          },
-          {
-            "port": 443
-          },
-          {
-            "rule_set": "geosite-youtube"
-          }
-        ],
-        "action": "route",
-        "outbound": "PROXY"
-      },
-      // ★ 拒绝其他所有 QUIC，强制降级 TCP
       {
         "type": "logical",
         "mode": "and",
