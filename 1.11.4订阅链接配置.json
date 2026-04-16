@@ -1,0 +1,849 @@
+{
+  "dns": {
+    "servers": [
+      {
+        "type": "tcp",
+        "tag": "dns_proxy",
+        "server": "1.1.1.1",
+        "detour": "🚀 节点选择",
+        "domain_resolver": "dns_resolver"
+      },
+      {
+        "type": "https",
+        "tag": "dns_direct",
+        "server": "dns.alidns.com",
+        "domain_resolver": "dns_resolver"
+      },
+      {
+        "type": "udp",
+        "tag": "dns_resolver",
+        "server": "223.5.5.5"
+      },
+      {
+        "type": "fakeip",
+        "tag": "dns_fakeip",
+        "inet4_range": "198.18.0.0/15",
+        "inet6_range": "fc00::/18"
+      }
+    ],
+    "rules": [
+      {
+        "rule_set": "geolocation-!cn",
+        "query_type": [
+          "A",
+          "AAAA"
+        ],
+        "server": "dns_fakeip"
+      },
+      {
+        "rule_set": "geolocation-!cn",
+        "query_type": "CNAME",
+        "server": "dns_proxy"
+      },
+      {
+        "query_type": [
+          "A",
+          "AAAA",
+          "CNAME"
+        ],
+        "invert": true,
+        "action": "predefined",
+        "rcode": "REFUSED"
+      }
+    ],
+    "final": "dns_direct",
+    "independent_cache": true
+  },
+  "ntp": {
+    "enabled": true,
+    "server": "time.apple.com",
+    "server_port": 123,
+    "interval": "30m"
+  },
+  "inbounds": [
+    {
+      "type": "mixed",
+      "tag": "mixed-in",
+      "listen": "0.0.0.0",
+      "listen_port": 2080
+    },
+    {
+      "type": "tun",
+      "tag": "tun-in",
+      "address": "172.19.0.1/30",
+      "auto_route": true,
+      "strict_route": true,
+      "stack": "mixed"
+    }
+  ],
+  "outbounds": [
+    {
+      "type": "selector",
+      "tag": "🚀 节点选择",
+      "outbounds": [
+        "⚡ 自动选择",
+        "🖐️ 手动切换",
+        "🇸🇪 Sweden",
+        "DIRECT",
+        "REJECT"
+      ]
+    },
+    {
+      "type": "urltest",
+      "tag": "⚡ 自动选择",
+      "outbounds": [
+        "🚀 CF-优选-Visa",
+        "🚀 CF-优选-DO"
+      ]
+    },
+    {
+      "type": "block",
+      "tag": "REJECT"
+    },
+    {
+      "type": "direct",
+      "tag": "DIRECT"
+    },
+    {
+      "type": "vless",
+      "server":"CF优选域名IP",
+ "server_port":443,
+ "uuid":"uuid",
+ "tcp_fast_open":false,
+ "tls":{"enabled":true,
+ "server_name":"节点域名",
+ "insecure":false
+ },
+ "transport":{
+ "type":"ws",
+ "path":"/pkpk-vl",
+ "headers":{
+ "host":"节点域名"
+ }
+ },
+ "network":"tcp"
+ },
+    {
+      "type": "vless",
+      "tag": "🚀 CF-优选-DO",
+      "server":"CF优选域名IP",
+ "server_port":443,
+ "uuid":"uuid",
+ "tcp_fast_open":false,
+ "tls":{"enabled":true,
+ "server_name":"节点域名",
+ "insecure":false
+ },
+ "transport":{
+ "type":"ws",
+ "path":"/pkpk-vl",
+ "headers":{
+ "host":"节点域名"
+ }
+ },
+ "network":"tcp"
+ },
+    {
+      "type": "selector",
+      "tag": "🖐️ 手动切换",
+      "outbounds": [
+        "🚀 CF-优选-Visa",
+        "🚀 CF-优选-DO"
+      ]
+    },
+    {
+      "tag": "🇸🇪 Sweden",
+      "type": "urltest",
+      "outbounds": [
+        "🚀 CF-优选-Sweden"
+      ]
+    },
+    {
+      "type": "selector",
+      "tag": "🛑 广告拦截",
+      "outbounds": [
+        "🚀 节点选择",
+        "⚡ 自动选择",
+        "🖐️ 手动切换",
+        "🇸🇪 Sweden",
+        "DIRECT",
+        "REJECT"
+      ]
+    },
+    {
+      "type": "selector",
+      "tag": "💬 AI 服务",
+      "outbounds": [
+        "🚀 节点选择",
+        "⚡ 自动选择",
+        "🖐️ 手动切换",
+        "🇸🇪 Sweden",
+        "DIRECT",
+        "REJECT"
+      ]
+    },
+    {
+      "type": "selector",
+      "tag": "📺 哔哩哔哩",
+      "outbounds": [
+        "🚀 节点选择",
+        "⚡ 自动选择",
+        "🖐️ 手动切换",
+        "🇸🇪 Sweden",
+        "DIRECT",
+        "REJECT"
+      ]
+    },
+    {
+      "type": "selector",
+      "tag": "📹 油管视频",
+      "outbounds": [
+        "🚀 节点选择",
+        "⚡ 自动选择",
+        "🖐️ 手动切换",
+        "🇸🇪 Sweden",
+        "DIRECT",
+        "REJECT"
+      ]
+    },
+    {
+      "type": "selector",
+      "tag": "🔍 谷歌服务",
+      "outbounds": [
+        "🚀 节点选择",
+        "⚡ 自动选择",
+        "🖐️ 手动切换",
+        "🇸🇪 Sweden",
+        "DIRECT",
+        "REJECT"
+      ]
+    },
+    {
+      "type": "selector",
+      "tag": "🏠 私有网络",
+      "outbounds": [
+        "DIRECT",
+        "🚀 节点选择",
+        "⚡ 自动选择",
+        "🖐️ 手动切换",
+        "🇸🇪 Sweden",
+        "REJECT"
+      ]
+    },
+    {
+      "type": "selector",
+      "tag": "🔒 国内服务",
+      "outbounds": [
+        "DIRECT",
+        "🚀 节点选择",
+        "⚡ 自动选择",
+        "🖐️ 手动切换",
+        "🇸🇪 Sweden",
+        "REJECT"
+      ]
+    },
+    {
+      "type": "selector",
+      "tag": "📲 电报消息",
+      "outbounds": [
+        "🚀 节点选择",
+        "⚡ 自动选择",
+        "🖐️ 手动切换",
+        "🇸🇪 Sweden",
+        "DIRECT",
+        "REJECT"
+      ]
+    },
+    {
+      "type": "selector",
+      "tag": "🐱 Github",
+      "outbounds": [
+        "🚀 节点选择",
+        "⚡ 自动选择",
+        "🖐️ 手动切换",
+        "🇸🇪 Sweden",
+        "DIRECT",
+        "REJECT"
+      ]
+    },
+    {
+      "type": "selector",
+      "tag": "Ⓜ️ 微软服务",
+      "outbounds": [
+        "🚀 节点选择",
+        "⚡ 自动选择",
+        "🖐️ 手动切换",
+        "🇸🇪 Sweden",
+        "DIRECT",
+        "REJECT"
+      ]
+    },
+    {
+      "type": "selector",
+      "tag": "🍏 苹果服务",
+      "outbounds": [
+        "🚀 节点选择",
+        "⚡ 自动选择",
+        "🖐️ 手动切换",
+        "🇸🇪 Sweden",
+        "DIRECT",
+        "REJECT"
+      ]
+    },
+    {
+      "type": "selector",
+      "tag": "🌐 社交媒体",
+      "outbounds": [
+        "🚀 节点选择",
+        "⚡ 自动选择",
+        "🖐️ 手动切换",
+        "🇸🇪 Sweden",
+        "DIRECT",
+        "REJECT"
+      ]
+    },
+    {
+      "type": "selector",
+      "tag": "🎬 流媒体",
+      "outbounds": [
+        "🚀 节点选择",
+        "⚡ 自动选择",
+        "🖐️ 手动切换",
+        "🇸🇪 Sweden",
+        "DIRECT",
+        "REJECT"
+      ]
+    },
+    {
+      "type": "selector",
+      "tag": "🎮 游戏平台",
+      "outbounds": [
+        "🚀 节点选择",
+        "⚡ 自动选择",
+        "🖐️ 手动切换",
+        "🇸🇪 Sweden",
+        "DIRECT",
+        "REJECT"
+      ]
+    },
+    {
+      "type": "selector",
+      "tag": "📚 教育资源",
+      "outbounds": [
+        "🚀 节点选择",
+        "⚡ 自动选择",
+        "🖐️ 手动切换",
+        "🇸🇪 Sweden",
+        "DIRECT",
+        "REJECT"
+      ]
+    },
+    {
+      "type": "selector",
+      "tag": "💰 金融服务",
+      "outbounds": [
+        "🚀 节点选择",
+        "⚡ 自动选择",
+        "🖐️ 手动切换",
+        "🇸🇪 Sweden",
+        "DIRECT",
+        "REJECT"
+      ]
+    },
+    {
+      "type": "selector",
+      "tag": "☁️ 云服务",
+      "outbounds": [
+        "🚀 节点选择",
+        "⚡ 自动选择",
+        "🖐️ 手动切换",
+        "🇸🇪 Sweden",
+        "DIRECT",
+        "REJECT"
+      ]
+    },
+    {
+      "type": "selector",
+      "tag": "🌐 非中国",
+      "outbounds": [
+        "🚀 节点选择",
+        "⚡ 自动选择",
+        "🖐️ 手动切换",
+        "🇸🇪 Sweden",
+        "DIRECT",
+        "REJECT"
+      ]
+    },
+    {
+      "type": "selector",
+      "tag": "🐟 漏网之鱼",
+      "outbounds": [
+        "🚀 节点选择",
+        "⚡ 自动选择",
+        "🖐️ 手动切换",
+        "🇸🇪 Sweden",
+        "DIRECT",
+        "REJECT"
+      ]
+    }
+  ],
+  "route": {
+    "default_domain_resolver": "dns_resolver",
+    "rule_set": [
+      {
+        "tag": "category-ads-all",
+        "type": "remote",
+        "format": "binary",
+        "url": "https://gh-proxy.com/https://github.com/MetaCubeX/meta-rules-dat/raw/refs/heads/sing/geo/geosite/category-ads-all.srs"
+      },
+      {
+        "tag": "category-ai-!cn",
+        "type": "remote",
+        "format": "binary",
+        "url": "https://gh-proxy.com/https://github.com/MetaCubeX/meta-rules-dat/raw/refs/heads/sing/geo/geosite/category-ai-!cn.srs"
+      },
+      {
+        "tag": "bilibili",
+        "type": "remote",
+        "format": "binary",
+        "url": "https://gh-proxy.com/https://github.com/MetaCubeX/meta-rules-dat/raw/refs/heads/sing/geo/geosite/bilibili.srs"
+      },
+      {
+        "tag": "youtube",
+        "type": "remote",
+        "format": "binary",
+        "url": "https://gh-proxy.com/https://github.com/MetaCubeX/meta-rules-dat/raw/refs/heads/sing/geo/geosite/youtube.srs"
+      },
+      {
+        "tag": "google",
+        "type": "remote",
+        "format": "binary",
+        "url": "https://gh-proxy.com/https://github.com/MetaCubeX/meta-rules-dat/raw/refs/heads/sing/geo/geosite/google.srs"
+      },
+      {
+        "tag": "geolocation-cn",
+        "type": "remote",
+        "format": "binary",
+        "url": "https://gh-proxy.com/https://github.com/MetaCubeX/meta-rules-dat/raw/refs/heads/sing/geo/geosite/geolocation-cn.srs"
+      },
+      {
+        "tag": "cn",
+        "type": "remote",
+        "format": "binary",
+        "url": "https://gh-proxy.com/https://github.com/MetaCubeX/meta-rules-dat/raw/refs/heads/sing/geo/geosite/cn.srs"
+      },
+      {
+        "tag": "github",
+        "type": "remote",
+        "format": "binary",
+        "url": "https://gh-proxy.com/https://github.com/MetaCubeX/meta-rules-dat/raw/refs/heads/sing/geo/geosite/github.srs"
+      },
+      {
+        "tag": "gitlab",
+        "type": "remote",
+        "format": "binary",
+        "url": "https://gh-proxy.com/https://github.com/MetaCubeX/meta-rules-dat/raw/refs/heads/sing/geo/geosite/gitlab.srs"
+      },
+      {
+        "tag": "microsoft",
+        "type": "remote",
+        "format": "binary",
+        "url": "https://gh-proxy.com/https://github.com/MetaCubeX/meta-rules-dat/raw/refs/heads/sing/geo/geosite/microsoft.srs"
+      },
+      {
+        "tag": "apple",
+        "type": "remote",
+        "format": "binary",
+        "url": "https://gh-proxy.com/https://github.com/MetaCubeX/meta-rules-dat/raw/refs/heads/sing/geo/geosite/apple.srs"
+      },
+      {
+        "tag": "facebook",
+        "type": "remote",
+        "format": "binary",
+        "url": "https://gh-proxy.com/https://github.com/MetaCubeX/meta-rules-dat/raw/refs/heads/sing/geo/geosite/facebook.srs"
+      },
+      {
+        "tag": "instagram",
+        "type": "remote",
+        "format": "binary",
+        "url": "https://gh-proxy.com/https://github.com/MetaCubeX/meta-rules-dat/raw/refs/heads/sing/geo/geosite/instagram.srs"
+      },
+      {
+        "tag": "twitter",
+        "type": "remote",
+        "format": "binary",
+        "url": "https://gh-proxy.com/https://github.com/MetaCubeX/meta-rules-dat/raw/refs/heads/sing/geo/geosite/twitter.srs"
+      },
+      {
+        "tag": "tiktok",
+        "type": "remote",
+        "format": "binary",
+        "url": "https://gh-proxy.com/https://github.com/MetaCubeX/meta-rules-dat/raw/refs/heads/sing/geo/geosite/tiktok.srs"
+      },
+      {
+        "tag": "linkedin",
+        "type": "remote",
+        "format": "binary",
+        "url": "https://gh-proxy.com/https://github.com/MetaCubeX/meta-rules-dat/raw/refs/heads/sing/geo/geosite/linkedin.srs"
+      },
+      {
+        "tag": "netflix",
+        "type": "remote",
+        "format": "binary",
+        "url": "https://gh-proxy.com/https://github.com/MetaCubeX/meta-rules-dat/raw/refs/heads/sing/geo/geosite/netflix.srs"
+      },
+      {
+        "tag": "hulu",
+        "type": "remote",
+        "format": "binary",
+        "url": "https://gh-proxy.com/https://github.com/MetaCubeX/meta-rules-dat/raw/refs/heads/sing/geo/geosite/hulu.srs"
+      },
+      {
+        "tag": "disney",
+        "type": "remote",
+        "format": "binary",
+        "url": "https://gh-proxy.com/https://github.com/MetaCubeX/meta-rules-dat/raw/refs/heads/sing/geo/geosite/disney.srs"
+      },
+      {
+        "tag": "hbo",
+        "type": "remote",
+        "format": "binary",
+        "url": "https://gh-proxy.com/https://github.com/MetaCubeX/meta-rules-dat/raw/refs/heads/sing/geo/geosite/hbo.srs"
+      },
+      {
+        "tag": "amazon",
+        "type": "remote",
+        "format": "binary",
+        "url": "https://gh-proxy.com/https://github.com/MetaCubeX/meta-rules-dat/raw/refs/heads/sing/geo/geosite/amazon.srs"
+      },
+      {
+        "tag": "bahamut",
+        "type": "remote",
+        "format": "binary",
+        "url": "https://gh-proxy.com/https://github.com/MetaCubeX/meta-rules-dat/raw/refs/heads/sing/geo/geosite/bahamut.srs"
+      },
+      {
+        "tag": "steam",
+        "type": "remote",
+        "format": "binary",
+        "url": "https://gh-proxy.com/https://github.com/MetaCubeX/meta-rules-dat/raw/refs/heads/sing/geo/geosite/steam.srs"
+      },
+      {
+        "tag": "epicgames",
+        "type": "remote",
+        "format": "binary",
+        "url": "https://gh-proxy.com/https://github.com/MetaCubeX/meta-rules-dat/raw/refs/heads/sing/geo/geosite/epicgames.srs"
+      },
+      {
+        "tag": "ea",
+        "type": "remote",
+        "format": "binary",
+        "url": "https://gh-proxy.com/https://github.com/MetaCubeX/meta-rules-dat/raw/refs/heads/sing/geo/geosite/ea.srs"
+      },
+      {
+        "tag": "ubisoft",
+        "type": "remote",
+        "format": "binary",
+        "url": "https://gh-proxy.com/https://github.com/MetaCubeX/meta-rules-dat/raw/refs/heads/sing/geo/geosite/ubisoft.srs"
+      },
+      {
+        "tag": "blizzard",
+        "type": "remote",
+        "format": "binary",
+        "url": "https://gh-proxy.com/https://github.com/MetaCubeX/meta-rules-dat/raw/refs/heads/sing/geo/geosite/blizzard.srs"
+      },
+      {
+        "tag": "coursera",
+        "type": "remote",
+        "format": "binary",
+        "url": "https://gh-proxy.com/https://github.com/MetaCubeX/meta-rules-dat/raw/refs/heads/sing/geo/geosite/coursera.srs"
+      },
+      {
+        "tag": "edx",
+        "type": "remote",
+        "format": "binary",
+        "url": "https://gh-proxy.com/https://github.com/MetaCubeX/meta-rules-dat/raw/refs/heads/sing/geo/geosite/edx.srs"
+      },
+      {
+        "tag": "udemy",
+        "type": "remote",
+        "format": "binary",
+        "url": "https://gh-proxy.com/https://github.com/MetaCubeX/meta-rules-dat/raw/refs/heads/sing/geo/geosite/udemy.srs"
+      },
+      {
+        "tag": "khanacademy",
+        "type": "remote",
+        "format": "binary",
+        "url": "https://gh-proxy.com/https://github.com/MetaCubeX/meta-rules-dat/raw/refs/heads/sing/geo/geosite/khanacademy.srs"
+      },
+      {
+        "tag": "category-scholar-!cn",
+        "type": "remote",
+        "format": "binary",
+        "url": "https://gh-proxy.com/https://github.com/MetaCubeX/meta-rules-dat/raw/refs/heads/sing/geo/geosite/category-scholar-!cn.srs"
+      },
+      {
+        "tag": "paypal",
+        "type": "remote",
+        "format": "binary",
+        "url": "https://gh-proxy.com/https://github.com/MetaCubeX/meta-rules-dat/raw/refs/heads/sing/geo/geosite/paypal.srs"
+      },
+      {
+        "tag": "visa",
+        "type": "remote",
+        "format": "binary",
+        "url": "https://gh-proxy.com/https://github.com/MetaCubeX/meta-rules-dat/raw/refs/heads/sing/geo/geosite/visa.srs"
+      },
+      {
+        "tag": "mastercard",
+        "type": "remote",
+        "format": "binary",
+        "url": "https://gh-proxy.com/https://github.com/MetaCubeX/meta-rules-dat/raw/refs/heads/sing/geo/geosite/mastercard.srs"
+      },
+      {
+        "tag": "stripe",
+        "type": "remote",
+        "format": "binary",
+        "url": "https://gh-proxy.com/https://github.com/MetaCubeX/meta-rules-dat/raw/refs/heads/sing/geo/geosite/stripe.srs"
+      },
+      {
+        "tag": "wise",
+        "type": "remote",
+        "format": "binary",
+        "url": "https://gh-proxy.com/https://github.com/MetaCubeX/meta-rules-dat/raw/refs/heads/sing/geo/geosite/wise.srs"
+      },
+      {
+        "tag": "aws",
+        "type": "remote",
+        "format": "binary",
+        "url": "https://gh-proxy.com/https://github.com/MetaCubeX/meta-rules-dat/raw/refs/heads/sing/geo/geosite/aws.srs"
+      },
+      {
+        "tag": "azure",
+        "type": "remote",
+        "format": "binary",
+        "url": "https://gh-proxy.com/https://github.com/MetaCubeX/meta-rules-dat/raw/refs/heads/sing/geo/geosite/azure.srs"
+      },
+      {
+        "tag": "digitalocean",
+        "type": "remote",
+        "format": "binary",
+        "url": "https://gh-proxy.com/https://github.com/MetaCubeX/meta-rules-dat/raw/refs/heads/sing/geo/geosite/digitalocean.srs"
+      },
+      {
+        "tag": "heroku",
+        "type": "remote",
+        "format": "binary",
+        "url": "https://gh-proxy.com/https://github.com/MetaCubeX/meta-rules-dat/raw/refs/heads/sing/geo/geosite/heroku.srs"
+      },
+      {
+        "tag": "dropbox",
+        "type": "remote",
+        "format": "binary",
+        "url": "https://gh-proxy.com/https://github.com/MetaCubeX/meta-rules-dat/raw/refs/heads/sing/geo/geosite/dropbox.srs"
+      },
+      {
+        "tag": "geolocation-!cn",
+        "type": "remote",
+        "format": "binary",
+        "url": "https://gh-proxy.com/https://github.com/MetaCubeX/meta-rules-dat/raw/refs/heads/sing/geo/geosite/geolocation-!cn.srs"
+      },
+      {
+        "tag": "google-ip",
+        "type": "remote",
+        "format": "binary",
+        "url": "https://gh-proxy.com/https://github.com/MetaCubeX/meta-rules-dat/raw/refs/heads/sing/geo/geoip/google.srs"
+      },
+      {
+        "tag": "private-ip",
+        "type": "remote",
+        "format": "binary",
+        "url": "https://gh-proxy.com/https://github.com/MetaCubeX/meta-rules-dat/raw/refs/heads/sing/geo/geoip/private.srs"
+      },
+      {
+        "tag": "cn-ip",
+        "type": "remote",
+        "format": "binary",
+        "url": "https://gh-proxy.com/https://github.com/MetaCubeX/meta-rules-dat/raw/refs/heads/sing/geo/geoip/cn.srs"
+      },
+      {
+        "tag": "telegram-ip",
+        "type": "remote",
+        "format": "binary",
+        "url": "https://gh-proxy.com/https://github.com/MetaCubeX/meta-rules-dat/raw/refs/heads/sing/geo/geoip/telegram.srs"
+      }
+    ],
+    "rules": [
+      {
+        "clash_mode": "direct",
+        "outbound": "DIRECT"
+      },
+      {
+        "clash_mode": "global",
+        "outbound": "🚀 节点选择"
+      },
+      {
+        "action": "sniff"
+      },
+      {
+        "protocol": "dns",
+        "action": "hijack-dns"
+      },
+      {
+        "rule_set": [
+          "category-ads-all"
+        ],
+        "outbound": "🛑 广告拦截"
+      },
+      {
+        "rule_set": [
+          "category-ai-!cn"
+        ],
+        "outbound": "💬 AI 服务"
+      },
+      {
+        "rule_set": [
+          "bilibili"
+        ],
+        "outbound": "📺 哔哩哔哩"
+      },
+      {
+        "rule_set": [
+          "youtube"
+        ],
+        "outbound": "📹 油管视频"
+      },
+      {
+        "rule_set": [
+          "google"
+        ],
+        "outbound": "🔍 谷歌服务"
+      },
+      {
+        "rule_set": [
+          "geolocation-cn",
+          "cn"
+        ],
+        "outbound": "🔒 国内服务"
+      },
+      {
+        "rule_set": [
+          "github",
+          "gitlab"
+        ],
+        "outbound": "🐱 Github"
+      },
+      {
+        "rule_set": [
+          "microsoft"
+        ],
+        "outbound": "Ⓜ️ 微软服务"
+      },
+      {
+        "rule_set": [
+          "apple"
+        ],
+        "outbound": "🍏 苹果服务"
+      },
+      {
+        "rule_set": [
+          "facebook",
+          "instagram",
+          "twitter",
+          "tiktok",
+          "linkedin"
+        ],
+        "outbound": "🌐 社交媒体"
+      },
+      {
+        "rule_set": [
+          "netflix",
+          "hulu",
+          "disney",
+          "hbo",
+          "amazon",
+          "bahamut"
+        ],
+        "outbound": "🎬 流媒体"
+      },
+      {
+        "rule_set": [
+          "steam",
+          "epicgames",
+          "ea",
+          "ubisoft",
+          "blizzard"
+        ],
+        "outbound": "🎮 游戏平台"
+      },
+      {
+        "rule_set": [
+          "coursera",
+          "edx",
+          "udemy",
+          "khanacademy",
+          "category-scholar-!cn"
+        ],
+        "outbound": "📚 教育资源"
+      },
+      {
+        "rule_set": [
+          "paypal",
+          "visa",
+          "mastercard",
+          "stripe",
+          "wise"
+        ],
+        "outbound": "💰 金融服务"
+      },
+      {
+        "rule_set": [
+          "aws",
+          "azure",
+          "digitalocean",
+          "heroku",
+          "dropbox"
+        ],
+        "outbound": "☁️ 云服务"
+      },
+      {
+        "rule_set": [
+          "geolocation-!cn"
+        ],
+        "outbound": "🌐 非中国"
+      },
+      {
+        "rule_set": [
+          "google-ip"
+        ],
+        "outbound": "🔍 谷歌服务"
+      },
+      {
+        "rule_set": [
+          "private-ip"
+        ],
+        "outbound": "🏠 私有网络"
+      },
+      {
+        "rule_set": [
+          "cn-ip"
+        ],
+        "outbound": "🔒 国内服务"
+      },
+      {
+        "rule_set": [
+          "telegram-ip"
+        ],
+        "outbound": "📲 电报消息"
+      }
+    ],
+    "auto_detect_interface": true,
+    "final": "🐟 漏网之鱼"
+  },
+  "experimental": {
+    "cache_file": {
+      "enabled": true,
+      "store_fakeip": true
+    }
+  }
+}
