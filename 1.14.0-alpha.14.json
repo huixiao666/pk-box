@@ -211,7 +211,7 @@
       "tag": "AUTO",
       "outbounds": [
         "🚀 CF-优选-Visa",
-        "🚀 CF-优选-DO"
+        "🚀 CF-优选-DO",
       ],
       "url": "http://www.gstatic.com/generate_204",
       "interval": "10m",
@@ -240,57 +240,51 @@
       "interrupt_exist_connections": false
     },
     {
+      "type": "vless",
       "tag": "🚀 CF-优选-Visa",
-      "server": "CF优选域名IP",
+      "server": "www.visa.com",
       "server_port": 443,
-      "type": "vless",
-      "uuid": "uuid",
-      "domain_resolver": "alidns",
-      "transport": {
-        "type": "ws",
-        "path": "/路径",
-        "headers": {
-          "Host": "节点域名"
-        }
-      },
-      "tls": {
-        "enabled": true,
-        "server_name": "cvb.372164885.xyz",
-        "utls": {
-          "enabled": true,
-          "fingerprint": "chrome"
-        },
-        "alpn": [
-          "http/1.1"
-        ]
-      }
-    },
-    {
-      "tag": "🚀 CF-优选-DO",
-      "server": "CF优选域名IP",
-      "server_port": 443,
-      "type": "vless",
-      "uuid": "uuid",
-      "domain_resolver": "alidns",
-      "transport": {
-        "type": "ws",
-        "path": "/路径",
-        "headers": {
-          "Host": "节点域名"
-        }
-      },
-      "tls": {
-        "enabled": true,
-        "server_name": "节点域名",
-        "utls": {
-          "enabled": true,
-          "fingerprint": "chrome"
-        },
-        "alpn": [
-          "http/1.1"
-        ]
-      }
+  "uuid": "a8ceaac6-bda6-459e-ace7-0b34c5873e1e",
+  "transport": {
+    "type": "ws",
+    "path": "/pkpk-vl",
+    "headers": {
+      "Host": "cvb.372164885.xyz"
     }
+  },
+  "tls": {
+    "enabled": true,
+    "server_name": "cvb.372164885.xyz",
+    "utls": {
+      "enabled": true,
+      "fingerprint": "chrome"
+    },
+    "alpn": ["http/1.1"]
+  }
+},
+    {
+      "type": "vless",
+      "tag": "🚀 CF-优选-DO",
+      "server": "www.digitalocean.com",
+      "server_port": 443,
+  "uuid": "a8ceaac6-bda6-459e-ace7-0b34c5873e1e",
+  "transport": {
+    "type": "ws",
+    "path": "/pkpk-vl",
+    "headers": {
+      "Host": "cvb.372164885.xyz"
+    }
+  },
+  "tls": {
+    "enabled": true,
+    "server_name": "cvb.372164885.xyz",
+    "utls": {
+      "enabled": true,
+      "fingerprint": "chrome"
+    },
+    "alpn": ["http/1.1"]
+  }
+}
   ],
   "http_clients": [
   {
