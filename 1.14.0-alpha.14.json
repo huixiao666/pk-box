@@ -1,14 +1,15 @@
 {
   "log": {
-    "level": "fatal",
+    "level": "info",
     "timestamp": true
   },
   "ntp": {
-    "enabled": true,
-    "server": "ntp.aliyun.com",
-    "server_port": 123,
-    "interval": "30m"
-  },
+  "enabled": true,
+  "server": "ntp.aliyun.com",
+  "server_port": 123,
+  "interval": "30m",
+  "detour": "PROXY" 
+},
   "dns": {
     "servers": [
       {
@@ -53,9 +54,19 @@
         "tag": "fakeip",
         "type": "fakeip",
         "inet4_range": "198.18.0.0/15"
-      }
+      },
+      {
+      "tag": "doh-ech",
+      "type": "https",
+      "server": "https://dns.google/dns-query",
+      "detour": "PROXY"
+    }
     ],
     "rules": [
+      {
+      "domain_suffix": ["cvb.372164885.xyz"],
+      "server": "doh-ech"
+      },
       {
         "domain_suffix": [
           "app-measurement.com",
@@ -143,25 +154,19 @@
         "server": "fakeip"
       },
       {
-        "action": "evaluate",
-        "server": "alidns"
+          "action": "evaluate",
+          "server": "alidns"
       },
       {
-        "type": "logical",
-        "mode": "or",
-        "rules": [
-          {
-            "match_response": true,
-            "ip_is_private": true
-          }
-        ],
-        "action": "respond"
+          "match_response": true,
+          "rule_set": "cnip",
+          "action": "route",
+          "server": "local"
       },
-      {
-        "match_response": true,
-        "ip_accept_any": true,
-        "action": "respond"
-      }
+    {
+     "match_response": true,
+     "action": "respond"
+    }
     ],
     "final": "alidns",
     "strategy": "ipv4_only",
@@ -186,7 +191,7 @@
       "tag": "mixed-in",
       "listen": "127.0.0.1",
       "listen_port": 7890
-    }
+}
   ],
   "outbounds": [
     {
@@ -211,7 +216,7 @@
       "tag": "AUTO",
       "outbounds": [
         "🚀 CF-优选-Visa",
-        "🚀 CF-优选-DO",
+        "🚀 CF-优选-DO"
       ],
       "url": "http://www.gstatic.com/generate_204",
       "interval": "10m",
@@ -240,52 +245,58 @@
       "interrupt_exist_connections": false
     },
     {
-      "type": "vless",
-      "tag": "🚀 CF-优选-Visa",
-      "server": "www.visa.com",
-      "server_port": 443,
-  "uuid": "a8ceaac6-bda6-459e-ace7-0b34c5873e1e",
+  "type": "vless",
+  "tag": "🚀 CF-优选-Visa",
+  "server": "CF优选域名IP",
+  "server_port": 443,
+  "uuid": "uuid",
   "transport": {
     "type": "ws",
-    "path": "/pkpk-vl",
+    "path": "/路径",
     "headers": {
-      "Host": "cvb.372164885.xyz"
+      "Host": "节点域名"
     }
   },
   "tls": {
     "enabled": true,
-    "server_name": "cvb.372164885.xyz",
+    "server_name": "节点域名",
     "utls": {
       "enabled": true,
       "fingerprint": "chrome"
     },
-    "alpn": ["http/1.1"]
-  }
-},
-    {
-      "type": "vless",
-      "tag": "🚀 CF-优选-DO",
-      "server": "www.digitalocean.com",
-      "server_port": 443,
-  "uuid": "a8ceaac6-bda6-459e-ace7-0b34c5873e1e",
-  "transport": {
-    "type": "ws",
-    "path": "/pkpk-vl",
-    "headers": {
-      "Host": "cvb.372164885.xyz"
-    }
-  },
-  "tls": {
-    "enabled": true,
-    "server_name": "cvb.372164885.xyz",
-    "utls": {
-      "enabled": true,
-      "fingerprint": "chrome"
-    },
-    "alpn": ["http/1.1"]
-  }
+    "alpn": ["http/1.1"],
+    "ech": {
+  "enabled": false
+ }
 }
-  ],
+},
+{
+  "type": "vless",
+  "tag": "🚀 CF-优选-DO",
+  "server": "CF优选域名IP",
+  "server_port": 443,
+  "uuid": "uuid",
+  "transport": {
+    "type": "ws",
+    "path": "/路径",
+    "headers": {
+      "Host": "节点域名"
+    }
+  },
+  "tls": {
+    "enabled": true,
+    "server_name": "节点域名",
+    "utls": {
+      "enabled": true,
+      "fingerprint": "chrome"
+    },
+    "alpn": ["http/1.1"],
+    "ech": {
+  "enabled": false
+ }
+}
+}
+],
   "http_clients": [
   {
     "tag": "default",
@@ -295,6 +306,18 @@
   "route": {
     "default_domain_resolver": "alidns",
     "rules": [
+      {
+      "wifi_ssid": ["MyHomeWiFi"],
+      "outbound": "PROXY"
+    },
+    {
+      "wifi_bssid": ["00:11:22:33:44:55"],
+      "outbound": "DIRECT"
+    },
+    {
+      "domain_suffix": ["steamcontent.com"],
+      "action": "bypass"
+    },
       {
         "type": "logical",
         "mode": "or",
