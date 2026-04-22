@@ -146,7 +146,7 @@
         "server": "fakeip"
       },
       {
-        "domain_suffix": ["cvb.372164885.xyz"],
+        "domain_suffix": ["节点域名"],
         "server": "doh-ech"
       },
       {
