@@ -50,12 +50,14 @@
         "tag": "ggdns",
         "type": "https",
         "server": "dns.google",
-        "domain_resolver": "hosts_fix"
+        "domain_resolver": "hosts_fix",
+        "detour": "PROXY"
       },
       {
         "tag": "doh-ech",
         "type": "https",
-        "server": "https://dns.google/dns-query",
+        "server": "dns.google",
+        "path": "/dns-query",
         "detour": "PROXY"
       },
       {
