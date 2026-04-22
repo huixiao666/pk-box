@@ -41,13 +41,15 @@
         "tag": "alidns",
         "type": "quic",
         "server": "dns.alidns.com",
-        "domain_resolver": "hosts_fix"
+        "domain_resolver": "hosts_fix",
+        "detour": "DIRECT"
       },
       {
         "tag": "ggdns",
         "type": "https",
         "server": "dns.google",
-        "domain_resolver": "hosts_fix"
+        "domain_resolver": "hosts_fix",
+        "detour": "PROXY"
       },
       {
         "tag": "fakeip",
@@ -58,6 +60,13 @@
     "rules": [
       {
         "domain_suffix": [
+          ".local",
+          ".lan",
+          "miwifi.com",
+          "tplogin.cn",
+          "router.asus.com",
+          "tendawifi.com",
+          "tplinkwifi.net",
           "app-measurement.com",
           "hm.baidu.com",
           "firebaselogging.googleapis.com",
@@ -65,7 +74,9 @@
           "beacons.gvt2.com",
           "beacons2.gvt2.com",
           "beacons3.gvt2.com",
-          "tracking.miui.com"
+          "tracking.miui.com",
+          "market.xiaomi.com",
+          "lancache.steamcontent.com"
         ],
         "server": "alidns"
       },
@@ -77,61 +88,19 @@
         "action": "reject"
       },
       {
-        "domain_suffix": [
-          ".local",
-          ".lan",
-          "miwifi.com",
-          "tplogin.cn",
-          "router.asus.com",
-          "tendawifi.com",
-          "tplinkwifi.net"
-        ],
-        "server": "local"
-      },
-      {
         "query_type": [
           "SVCB",
-          "HTTPS"
-        ],
-        "action": "reject"
-      },
-      {
-        "query_type": [
+          "HTTPS",
           "PTR"
         ],
         "action": "reject"
       },
       {
-        "rule_set": [
-          "proxy",
-          "games",
-          "ai"
-        ],
-        "query_type": [
-          "A",
-          "AAAA"
-        ],
-        "server": "fakeip"
-      },
-      {
-        "rule_set": [
-          "proxy",
-          "games",
-          "ai"
-        ],
-        "query_type": [
-          "A",
-          "AAAA"
-        ],
-        "server": "ggdns",
+        "rule_set": ["proxy", "games", "ai"],
+        "query_type": ["A", "AAAA"],
+        "server": "fakeip",
+        "rewrite_ttl": 300,
         "client_subnet": "119.134.100.0/24"
-      },
-      {
-        "domain_suffix": [
-          "market.xiaomi.com",
-          "lancache.steamcontent.com"
-        ],
-        "server": "alidns"
       },
       {
         "domain_suffix": [
@@ -155,8 +124,8 @@
         "server": "fakeip"
       }
     ],
-    "final": "alidns",
-    "strategy": "ipv4_only",
+    "final": "ggdns",
+    "strategy": "prefer_ipv4",
     "reverse_mapping": true,
     "cache_capacity": 16000
   },
@@ -288,6 +257,19 @@
     "rules": [
       {
         "type": "logical",
+        "mode": "and",
+        "rules": [
+          {
+            "protocol": "quic"
+          },
+          {
+            "port": 443
+          }
+        ],
+        "action": "reject"
+      },
+      {
+        "type": "logical",
         "mode": "or",
         "rules": [
           {
@@ -301,19 +283,6 @@
       },
       {
         "action": "sniff"
-      },
-      {
-        "type": "logical",
-        "mode": "and",
-        "rules": [
-          {
-            "protocol": "quic"
-          },
-          {
-            "port": 443
-          }
-        ],
-        "action": "reject"
       },
       {
         "domain_suffix": [
@@ -351,10 +320,6 @@
         "action": "reject"
       },
       {
-        "rule_set": "geosite-google",
-        "outbound": "PROXY"
-      },
-      {
         "domain_suffix": [
           "steamserver.net",
           "zhihu.com",
@@ -366,15 +331,10 @@
         "outbound": "DIRECT"
       },
       {
-        "rule_set": "proxy",
-        "outbound": "PROXY"
-      },
-      {
-        "rule_set": "games",
-        "outbound": "PROXY"
-      },
-      {
-        "rule_set": "ai",
+        "rule_set": [
+        "geosite-google", "telegramip",
+        "proxy", "games", "ai"
+        ],
         "outbound": "PROXY"
       },
       {
@@ -393,22 +353,13 @@
         "action": "resolve"
       },
       {
-        "rule_set": "telegramip",
-        "outbound": "PROXY"
-      },
-      {
         "rule_set": "cnip",
         "outbound": "DIRECT"
       },
       {
         "package_name": [
           "com.google.android.youtube",
-          "app.revanced.android.youtube"
-        ],
-        "outbound": "PROXY"
-      },
-      {
-        "package_name": [
+          "app.revanced.android.youtube",
           "org.telegram.messenger",
           "org.telegram.messenger.beta"
         ],
