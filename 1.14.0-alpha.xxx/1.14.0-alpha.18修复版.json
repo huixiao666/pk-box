@@ -4,7 +4,6 @@
     "timestamp": true
   },
   "dns": {
-    "client_subnet": "你的公网IP/24",
     "servers": [
       {
         "type": "local",
@@ -68,13 +67,6 @@
         "detour": "PROXY",
         "domain_resolver": "hosts_fix",
         "server": "dns.google"
-      },
-      {
-        "type": "https",
-        "tag": "doh-ech",
-        "detour": "PROXY",
-        "server": "dns.google",
-        "path": "/dns-query"
       },
       {
         "type": "fakeip",
@@ -161,10 +153,6 @@
         "server": "fakeip"
       },
       {
-        "domain_suffix": "节点域名",
-        "server": "doh-ech"
-      },
-      {
         "query_type": [
           "A",
           "AAAA"
@@ -178,23 +166,18 @@
         "rewrite_ttl": 300
       },
       {
-        "domain_suffix": [
-          ".cn",
-          ".com.cn"
-        ],
+        "domain_suffix": [".cn", ".com.cn"],
         "action": "evaluate",
         "server": "alidns-dot"
       },
       {
-        "domain_suffix": [
-          ".cn",
-          ".com.cn"
-        ],
+        "domain_suffix": [".cn", ".com.cn"],
         "server": "alidns-quic"
       },
       {
-        "rule_set": "cnip",
         "match_response": true,
+        "rule_set": "cnip",
+        "action": "route",
         "server": "local"
       },
       {
@@ -267,20 +250,20 @@
       "tag": "PROXY",
       "outbounds": [
         "AUTO",
-        "🚀 CF-优选-Visa",
-        "🚀 CF-优选-DO",
+        "🇺🇸 pkpk01",
+        "🇺🇸 pkpk02",
         "DIRECT"
       ],
-      "default": "🚀 CF-优选-Visa"
+      "default": "AUTO"
     },
     {
       "type": "urltest",
       "tag": "AUTO",
       "outbounds": [
-        "🚀 CF-优选-Visa",
-        "🚀 CF-优选-DO"
+        "🇺🇸 pkpk01",
+        "🇺🇸 pkpk02"
       ],
-      "url": "http://cp.cloudflare.com/",
+      "url": "http://www.gstatic.com/generate_204",
       "interval": "10m0s",
       "tolerance": 50,
       "idle_timeout": "30m0s"
@@ -319,15 +302,13 @@
     },
     {
       "type": "vless",
-      "tag": "🚀 CF-优选-Visa",
-      "domain_resolver": "alidns-quic",
+      "tag": "🇺🇸 pkpk01",
       "server": "CF优选域名IP",
       "server_port": 443,
       "uuid": "uuid",
       "tls": {
         "enabled": true,
         "server_name": "节点域名",
-        "alpn": "http/1.1",
         "utls": {
           "enabled": true,
           "fingerprint": "chrome"
@@ -335,23 +316,23 @@
       },
       "transport": {
         "type": "ws",
-        "path": "/路径",
+        "path": "/pkpk-vl",
         "headers": {
           "Host": "节点域名"
-        }
+        },
+        "max_early_data": 2560,
+        "early_data_header_name": "Sec-WebSocket-Protocol"
       }
     },
     {
       "type": "vless",
-      "tag": "🚀 CF-优选-DO",
-      "domain_resolver": "alidns-quic",
+      "tag": "🇺🇸 pkpk02",
       "server": "CF优选域名IP",
       "server_port": 443,
       "uuid": "uuid",
       "tls": {
         "enabled": true,
         "server_name": "节点域名",
-        "alpn": "http/1.1",
         "utls": {
           "enabled": true,
           "fingerprint": "chrome"
@@ -359,10 +340,12 @@
       },
       "transport": {
         "type": "ws",
-        "path": "/路径",
+        "path": "/pkpk-vl",
         "headers": {
           "Host": "节点域名"
-        }
+        },
+        "max_early_data": 2560,
+        "early_data_header_name": "Sec-WebSocket-Protocol"
       }
     }
   ],
