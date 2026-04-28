@@ -4,7 +4,6 @@
     "timestamp": true
   },
   "dns": {
-    "timeout": "3s",
     "servers": [
       {
         "type": "local",
@@ -274,6 +273,7 @@
     "final": "ggdns",
     "reverse_mapping": true,
     "strategy": "prefer_ipv4",
+    "timeout": "3s",
     "cache_capacity": 65536,
     "optimistic": true
   },
