@@ -1,0 +1,364 @@
+{
+  "log": {
+    "level": "trace",
+    "timestamp": true
+  },
+  "dns": {
+    "servers": [
+      {
+        "type": "tls",
+        "tag": "google",
+        "detour": "♻️ 自动选择",
+        "server": "dns.google"
+      },
+      {
+        "type": "quic",
+        "tag": "local",
+        "server": "223.5.5.5"
+      },
+      {
+        "type": "fakeip",
+        "tag": "fakeip",
+        "inet4_range": "198.18.0.0/15"
+      }
+    ],
+    "rules": [
+      {
+        "clash_mode": "Direct",
+        "server": "local"
+      },
+      {
+        "clash_mode": "Global",
+        "server": "google"
+      },
+      {
+        "query_type": "AAAA",
+        "server": "local"
+      },
+      {
+        "rule_set": "geosite-cn",
+        "server": "local"
+      },
+      {
+        "query_type": "A",
+        "server": "fakeip"
+      }
+    ],
+    "strategy": "prefer_ipv4"
+  },
+  "ntp": {
+    "enabled": true,
+    "interval": "1h0m0s",
+    "server": "time.apple.com",
+    "server_port": 123
+  },
+  "http_clients": [
+    {
+      "tag": "default",
+      "version": 2,
+      "detour": "♻️ 自动选择",
+      "stream_receive_window": 0,
+      "connection_receive_window": 0
+    }
+  ],
+  "inbounds": [
+    {
+      "type": "tun",
+      "tag": "tun-in",
+      "address": "172.19.0.1/30",
+      "auto_route": true,
+      "strict_route": true,
+      "stack": "system",
+      "platform": {
+        "http_proxy": {
+          "enabled": true,
+          "server": "127.0.0.1",
+          "server_port": 7890
+        }
+      }
+    },
+    {
+      "type": "mixed",
+      "tag": "mixed-in",
+      "listen": "127.0.0.1",
+      "listen_port": 7890
+    }
+  ],
+  "outbounds": [
+    {
+      "type": "vless",
+      "tag": "🇺🇸 pkpk01",
+      "server": "CF优选域名IP",
+      "server_port": 443,
+      "uuid": "uuid",
+      "tls": {
+        "enabled": true,
+        "server_name": "节点域名",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        }
+      },
+      "transport": {
+        "type": "ws",
+        "path": "/路径",
+        "headers": {
+          "Host": "节点域名"
+        },
+        "max_early_data": 2560,
+        "early_data_header_name": "Sec-WebSocket-Protocol"
+      }
+    },
+    {
+      "type": "vless",
+      "tag": "🇺🇸 pkpk02",
+      "server": "CF优选域名IP",
+      "server_port": 443,
+      "uuid": "uuid",
+      "tls": {
+        "enabled": true,
+        "server_name": "节点域名",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        }
+      },
+      "transport": {
+        "type": "ws",
+        "path": "/路径",
+        "headers": {
+          "Host": "节点域名"
+        },
+        "max_early_data": 2560,
+        "early_data_header_name": "Sec-WebSocket-Protocol"
+      }
+    }
+    },
+    {
+      "type": "urltest",
+      "tag": "♻️ 自动选择",
+      "outbounds": [
+        "🇺🇸 pkpk01",
+        "🇺🇸 pkpk02",
+        "🇺🇸 pkpk03",
+        "🇺🇸 pkpk04",
+        "🇺🇸 pkpk05",
+        "🇺🇸 pkpk06",
+        "🇺🇸 pkpk07",
+        "🇺🇸 pkpk08",
+        "🇺🇸 pkpk09",
+        "🇺🇸 pkpk10",
+        "🇺🇸 pkpk11",
+        "🇺🇸 pkpk12",
+        "🇺🇸 pkpk13",
+        "🇺🇸 pkpk14"
+      ],
+      "url": "http://www.gstatic.com/generate_204",
+      "interval": "5m0s",
+      "tolerance": 50
+    },
+    {
+      "type": "selector",
+      "tag": "🤖 AI",
+      "outbounds": [
+        "♻️ 自动选择",
+        "✈️ Proxy"
+      ]
+    },
+    {
+      "type": "selector",
+      "tag": "▶️ YouTube",
+      "outbounds": [
+        "♻️ 自动选择",
+        "✈️ Proxy"
+      ]
+    },
+    {
+      "type": "selector",
+      "tag": "📱 Telegram",
+      "outbounds": [
+        "♻️ 自动选择",
+        "✈️ Proxy"
+      ]
+    },
+    {
+      "type": "selector",
+      "tag": "✈️ Proxy",
+      "outbounds": [
+        "♻️ 自动选择",
+        "🎯 direct"
+      ]
+    },
+    {
+      "type": "direct",
+      "tag": "🎯 direct"
+    },
+    {
+      "type": "block",
+      "tag": "block"
+    }
+  ],
+  "route": {
+    "rules": [
+      {
+        "action": "sniff"
+      },
+      {
+        "clash_mode": "Direct",
+        "outbound": "🎯 direct"
+      },
+      {
+        "clash_mode": "Global",
+        "outbound": "✈️ Proxy"
+      },
+      {
+        "protocol": "dns",
+        "action": "hijack-dns"
+      },
+      {
+        "rule_set": "geosite-category-ads-all",
+        "action": "reject"
+      },
+      {
+        "rule_set": [
+          "geosite-cn",
+          "geoip-cn"
+        ],
+        "outbound": "🎯 direct"
+      },
+      {
+        "ip_is_private": true,
+        "outbound": "🎯 direct"
+      },
+      {
+        "type": "logical",
+        "mode": "or",
+        "rules": [
+          {
+            "rule_set": [
+              "geosite-openai",
+              "geosite-anthropic",
+              "geosite-google-gemini"
+            ]
+          },
+          {
+            "domain_suffix": [
+              "chatgpt.com",
+              "claude.ai",
+              "gateway.ai.cloudflare.com",
+              "grok.com",
+              "groq.com",
+              "meta.ai",
+              "openart.ai",
+              "openrouter.ai",
+              "perplexity.ai",
+              "x.ai"
+            ]
+          }
+        ],
+        "outbound": "🤖 AI"
+      },
+      {
+        "rule_set": [
+          "geosite-youtube",
+          "geosite-netflix"
+        ],
+        "outbound": "▶️ YouTube"
+      },
+      {
+        "rule_set": "geosite-telegram",
+        "outbound": "📱 Telegram"
+      },
+      {
+        "rule_set": "geosite-geolocation-!cn",
+        "outbound": "♻️ 自动选择"
+      }
+    ],
+    "rule_set": [
+      {
+        "type": "remote",
+        "tag": "geosite-category-ads-all",
+        "url": "https://gh-proxy.com/https://raw.githubusercontent.com/SagerNet/sing-geosite/rule-set/geosite-category-ads-all.srs",
+        "http_client": "default",
+        "update_interval": "24h0m0s"
+      },
+      {
+        "type": "remote",
+        "tag": "geosite-cn",
+        "url": "https://gh-proxy.com/https://raw.githubusercontent.com/SagerNet/sing-geosite/rule-set/geosite-cn.srs",
+        "http_client": "default",
+        "update_interval": "24h0m0s"
+      },
+      {
+        "type": "remote",
+        "tag": "geoip-cn",
+        "url": "https://gh-proxy.com/https://raw.githubusercontent.com/SagerNet/sing-geoip/rule-set/geoip-cn.srs",
+        "http_client": "default",
+        "update_interval": "24h0m0s"
+      },
+      {
+        "type": "remote",
+        "tag": "geosite-openai",
+        "url": "https://gh-proxy.com/https://raw.githubusercontent.com/SagerNet/sing-geosite/rule-set/geosite-openai.srs",
+        "http_client": "default",
+        "update_interval": "24h0m0s"
+      },
+      {
+        "type": "remote",
+        "tag": "geosite-anthropic",
+        "url": "https://gh-proxy.com/https://raw.githubusercontent.com/SagerNet/sing-geosite/rule-set/geosite-anthropic.srs",
+        "http_client": "default",
+        "update_interval": "24h0m0s"
+      },
+      {
+        "type": "remote",
+        "tag": "geosite-google-gemini",
+        "url": "https://gh-proxy.com/https://raw.githubusercontent.com/SagerNet/sing-geosite/rule-set/geosite-google-gemini.srs",
+        "http_client": "default",
+        "update_interval": "24h0m0s"
+      },
+      {
+        "type": "remote",
+        "tag": "geosite-youtube",
+        "url": "https://gh-proxy.com/https://raw.githubusercontent.com/SagerNet/sing-geosite/rule-set/geosite-youtube.srs",
+        "http_client": "default",
+        "update_interval": "24h0m0s"
+      },
+      {
+        "type": "remote",
+        "tag": "geosite-netflix",
+        "url": "https://gh-proxy.com/https://raw.githubusercontent.com/SagerNet/sing-geosite/rule-set/geosite-netflix.srs",
+        "http_client": "default",
+        "update_interval": "24h0m0s"
+      },
+      {
+        "type": "remote",
+        "tag": "geosite-telegram",
+        "url": "https://gh-proxy.com/https://raw.githubusercontent.com/SagerNet/sing-geosite/rule-set/geosite-telegram.srs",
+        "http_client": "default",
+        "update_interval": "24h0m0s"
+      },
+      {
+        "type": "remote",
+        "tag": "geosite-geolocation-!cn",
+        "url": "https://gh-proxy.com/https://raw.githubusercontent.com/SagerNet/sing-geosite/rule-set/geosite-geolocation-!cn.srs",
+        "http_client": "default",
+        "update_interval": "24h0m0s"
+      }
+    ],
+    "final": "♻️ 自动选择",
+    "auto_detect_interface": true,
+    "default_domain_resolver": "local"
+  },
+  "experimental": {
+    "cache_file": {
+      "enabled": true,
+      "store_fakeip": true
+    },
+    "clash_api": {
+      "external_controller": "127.0.0.1:9090",
+      "external_ui": "ui",
+      "default_mode": "rule"
+    }
+  }
+}
