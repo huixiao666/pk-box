@@ -392,7 +392,7 @@
       "users": [
         {
           "name": "",
-          "uuid": "75bddeb1-488a-4e94-acbe-6b803f100996"
+          "uuid": "节点的uuid"
         }
       ]
     },
@@ -404,7 +404,7 @@
       "users": [
         {
           "name": "",
-          "uuid": "75bddeb1-488a-4e94-acbe-6b803f100996"
+          "uuid": "节点的uuid"
         }
       ]
     }
