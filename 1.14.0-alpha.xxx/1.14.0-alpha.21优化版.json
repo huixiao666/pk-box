@@ -401,7 +401,7 @@
         "DIRECT",
         "REJECT-DROP"
       ],
-      "default": "REJECT-DROP"
+      "default": "PROXY"
     },
     {
       "type": "block",
