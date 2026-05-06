@@ -1,6 +1,6 @@
 {
   "log": {
-    "level": "warn",
+    "level": "trace",
     "timestamp": true
   },
   "dns": {
@@ -9,10 +9,22 @@
         "type": "hosts",
         "tag": "dns_hosts",
         "predefined": {
-          "dns.alidns.com": ["223.5.5.5", "223.6.6.6"],
-          "doh.pub": ["1.12.12.21", "120.53.53.53"],
-          "dns.google": ["8.8.8.8", "8.8.4.4"],
-          "cloudflare-dns.com": ["104.16.248.249", "104.16.249.249"]
+          "dns.alidns.com": [
+            "223.5.5.5",
+            "223.6.6.6"
+          ],
+          "doh.pub": [
+            "1.12.12.21",
+            "120.53.53.53"
+          ],
+          "dns.google": [
+            "8.8.8.8",
+            "8.8.4.4"
+          ],
+          "cloudflare-dns.com": [
+            "104.16.248.249",
+            "104.16.249.249"
+          ]
         }
       },
       {
@@ -36,22 +48,47 @@
     ],
     "rules": [
       {
-        "domain_suffix": [".local", ".lan", "miwifi.com", "tplogin.cn",
-          "market.xiaomi.com", "lancache.steamcontent.com"],
+        "domain_suffix": [
+          ".local",
+          ".lan",
+          "miwifi.com",
+          "tplogin.cn",
+          "market.xiaomi.com",
+          "lancache.steamcontent.com"
+        ],
         "server": "ali_dns"
       },
       {
-        "query_type": ["SVCB", "HTTPS", "PTR"],
+        "query_type": [
+          "SVCB",
+          "HTTPS",
+          "PTR"
+        ],
         "action": "reject"
       },
-      { "rule_set": "cn", "server": "ali_dns" },
-      { "rule_set": "private", "server": "ali_dns" },
       {
-        "rule_set": ["geosite-google", "proxy", "ai"],
+        "rule_set": "cn",
+        "server": "ali_dns"
+      },
+      {
+        "rule_set": "private",
+        "server": "ali_dns"
+      },
+      {
+        "rule_set": [
+          "geosite-google",
+          "proxy"
+        ],
         "server": "fakeip"
       },
-      { "clash_mode": "direct", "server": "ali_dns" },
-      { "clash_mode": "global", "server": "fakeip" }
+      {
+        "clash_mode": "direct",
+        "server": "ali_dns"
+      },
+      {
+        "clash_mode": "global",
+        "server": "fakeip"
+      }
     ],
     "final": "ggdns",
     "strategy": "prefer_ipv4"
@@ -88,33 +125,55 @@
         "🟢 自动-测速",
         "🔵 自动-稳定",
         "AUTO",
-        "pkpk01", "pkpk02", "pkpk03", "pkpk04",
+        "pkpk01",
+        "pkpk02",
+        "pkpk03",
+        "pkpk04",
         "DIRECT"
       ],
+      "providers": null,
       "default": "🟢 自动-测速"
     },
     {
       "type": "urltest",
       "tag": "AUTO",
-      "outbounds": ["pkpk01", "pkpk02", "pkpk03", "pkpk04"],
+      "outbounds": [
+        "pkpk01",
+        "pkpk02",
+        "pkpk03",
+        "pkpk04"
+      ],
+      "providers": null,
       "url": "http://www.gstatic.com/generate_204",
-      "interval": "10m",
+      "interval": "10m0s",
       "tolerance": 100
     },
     {
       "type": "urltest",
       "tag": "🟢 自动-测速",
-      "outbounds": ["pkpk01", "pkpk02", "pkpk03", "pkpk04"],
+      "outbounds": [
+        "pkpk01",
+        "pkpk02",
+        "pkpk03",
+        "pkpk04"
+      ],
+      "providers": null,
       "url": "http://www.gstatic.com/generate_204",
-      "interval": "10m",
+      "interval": "10m0s",
       "tolerance": 100
     },
     {
       "type": "urltest",
       "tag": "🔵 自动-稳定",
-      "outbounds": ["pkpk01", "pkpk02", "pkpk03", "pkpk04"],
+      "outbounds": [
+        "pkpk01",
+        "pkpk02",
+        "pkpk03",
+        "pkpk04"
+      ],
+      "providers": null,
       "url": "http://www.gstatic.com/generate_204",
-      "interval": "15m",
+      "interval": "15m0s",
       "tolerance": 30
     },
     {
@@ -126,12 +185,17 @@
       "tls": {
         "enabled": true,
         "server_name": "节点域名",
-        "utls": { "enabled": true, "fingerprint": "chrome" }
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        }
       },
       "transport": {
         "type": "ws",
         "path": "/路径",
-        "headers": {"Host": "节点域名"}
+        "headers": {
+          "Host": "节点域名"
+        }
       },
       "packet_encoding": "xudp"
     },
@@ -144,12 +208,17 @@
       "tls": {
         "enabled": true,
         "server_name": "节点域名",
-        "utls": { "enabled": true, "fingerprint": "chrome" }
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        }
       },
       "transport": {
         "type": "ws",
         "path": "/路径",
-        "headers": {"Host": "节点域名"}
+        "headers": {
+          "Host": "节点域名"
+        }
       },
       "packet_encoding": "xudp"
     },
@@ -162,83 +231,126 @@
       "tls": {
         "enabled": true,
         "server_name": "节点域名",
-        "utls": { "enabled": true, "fingerprint": "chrome" }
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        }
       },
       "transport": {
         "type": "ws",
         "path": "/路径",
-        "headers": {"Host": "节点域名"}
+        "headers": {
+          "Host": "节点域名"
+        }
       },
       "packet_encoding": "xudp"
     },
     {
       "type": "vless",
+      "tag": "pkpk04",
       "server": "CF优选域名或IP",
       "server_port": 端口,
       "uuid": "节点uuid",
       "tls": {
         "enabled": true,
         "server_name": "节点域名",
-        "utls": { "enabled": true, "fingerprint": "chrome" }
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        }
       },
       "transport": {
         "type": "ws",
         "path": "/路径",
-        "headers": {"Host": "节点域名"}
+        "headers": {
+          "Host": "节点域名"
+        }
       },
       "packet_encoding": "xudp"
     }
   ],
   "route": {
     "rules": [
-      { "port": 53, "action": "hijack-dns" },
-      { "protocol": "dns", "action": "hijack-dns" },
-      { "clash_mode": "Global", "outbound": "PROXY" },
-      { "clash_mode": "Direct", "outbound": "DIRECT" },
-      { "ip_cidr": "198.18.0.0/15", "outbound": "PROXY" },
-      { "ip_is_private": true, "outbound": "DIRECT" },
-      { "rule_set": ["cn", "private", "cnip"], "outbound": "DIRECT" },
-      { "rule_set": ["geosite-google", "proxy", "ai"], "outbound": "PROXY" },
-      { "package_name": ["com.tencent.mm", "com.eg.android.AlipayGphone", "com.netease.cloudmusic"], "outbound": "DIRECT" }
+      {
+        "port": 53,
+        "action": "hijack-dns"
+      },
+      {
+        "protocol": "dns",
+        "action": "hijack-dns"
+      },
+      {
+        "clash_mode": "Global",
+        "outbound": "PROXY"
+      },
+      {
+        "clash_mode": "Direct",
+        "outbound": "DIRECT"
+      },
+      {
+        "ip_cidr": "198.18.0.0/15",
+        "outbound": "PROXY"
+      },
+      {
+        "ip_is_private": true,
+        "outbound": "DIRECT"
+      },
+      {
+        "rule_set": [
+          "cn",
+          "private",
+          "cnip"
+        ],
+        "outbound": "DIRECT"
+      },
+      {
+        "rule_set": [
+          "geosite-google",
+          "proxy"
+        ],
+        "outbound": "PROXY"
+      },
+      {
+        "package_name": [
+          "com.tencent.mm",
+          "com.eg.android.AlipayGphone",
+          "com.netease.cloudmusic"
+        ],
+        "outbound": "DIRECT"
+      }
     ],
     "rule_set": [
-  {
-    "type": "remote",
-    "tag": "cn",
-    "url": "https://cdn.jsdelivr.net/gh/SagerNet/sing-geosite@rule-set/geosite-cn.srs",
-    "update_interval": "24h"
-  },
-  {
-    "type": "remote",
-    "tag": "private",
-    "url": "https://cdn.jsdelivr.net/gh/SagerNet/sing-geosite@rule-set/geosite-private.srs",
-    "update_interval": "24h"
-  },
-  {
-    "type": "remote",
-    "tag": "cnip",
-    "url": "https://cdn.jsdelivr.net/gh/SagerNet/sing-geoip@rule-set/geoip-cn.srs",
-    "update_interval": "24h"
-  },
-  {
-    "type": "remote",
-    "tag": "geosite-google",
-    "url": "https://cdn.jsdelivr.net/gh/SagerNet/sing-geosite@rule-set/geosite-google.srs",
-    "update_interval": "24h"
-  },
-  {
-    "type": "remote",
-    "tag": "proxy",
-    "url": "https://cdn.jsdelivr.net/gh/SagerNet/sing-geosite@rule-set/geosite-geolocation-!cn.srs",
-    "update_interval": "24h"
-  },
-  {
-    "type": "remote",
-    "tag": "ai",
-    "url": "https://cdn.jsdelivr.net/gh/SagerNet/sing-geosite@rule-set/geosite-category-ai.srs",
-    "update_interval": "24h"
-  }
-],
+      {
+        "type": "remote",
+        "tag": "cn",
+        "url": "https://cdn.jsdelivr.net/gh/SagerNet/sing-geosite@rule-set/geosite-cn.srs",
+        "update_interval": "24h0m0s"
+      },
+      {
+        "type": "remote",
+        "tag": "private",
+        "url": "https://cdn.jsdelivr.net/gh/SagerNet/sing-geosite@rule-set/geosite-private.srs",
+        "update_interval": "24h0m0s"
+      },
+      {
+        "type": "remote",
+        "tag": "cnip",
+        "url": "https://cdn.jsdelivr.net/gh/SagerNet/sing-geoip@rule-set/geoip-cn.srs",
+        "update_interval": "24h0m0s"
+      },
+      {
+        "type": "remote",
+        "tag": "geosite-google",
+        "url": "https://cdn.jsdelivr.net/gh/SagerNet/sing-geosite@rule-set/geosite-google.srs",
+        "update_interval": "24h0m0s"
+      },
+      {
+        "type": "remote",
+        "tag": "proxy",
+        "url": "https://cdn.jsdelivr.net/gh/SagerNet/sing-geosite@rule-set/geosite-geolocation-!cn.srs",
+        "update_interval": "24h0m0s"
+      }
+    ],
     "final": "PROXY",
     "auto_detect_interface": true,
     "default_domain_resolver": "ali_dns"
