@@ -91,7 +91,7 @@
       {
         "rule_set": [
           "geosite_adguard",
-          "geosite-category-ads-all""
+          "geosite-category-ads-all"
         ],
         "action": "reject"
       },
