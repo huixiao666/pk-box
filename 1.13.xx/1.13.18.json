@@ -1,0 +1,735 @@
+{
+  "log": {
+    "level": "trace",
+    "timestamp": true
+  },
+  "dns": {
+    "servers": [
+      {
+        "type": "hosts",
+        "tag": "hosts_fix",
+        "predefined": {
+          "cloudflare-dns.com": [
+            "1.1.1.1",
+            "1.0.0.1"
+          ],
+          "dns.google": [
+            "8.8.8.8",
+            "8.8.4.4"
+          ],
+          "dns.alidns.com": [
+            "223.5.5.5",
+            "223.6.6.6"
+          ],
+          "cdn.jsdelivr.net": [
+            "104.16.89.20",
+            "104.16.90.20"
+          ],
+          "raw.githubusercontent.com": [
+            "185.199.108.133",
+            "185.199.109.133",
+            "185.199.110.133",
+            "185.199.111.133"
+          ]
+        }
+      },
+      {
+        "type": "udp",
+        "tag": "pk-dns",
+        "detour": "DIRECT",
+        "server": "192.168.3.1"
+      },
+      {
+        "type": "fakeip",
+        "tag": "fakeip",
+        "inet4_range": "198.18.0.0/15"
+      },
+      {
+        "type": "quic",
+        "tag": "alidns-quic",
+        "detour": "DIRECT",
+        "domain_resolver": "hosts_fix",
+        "server": "dns.alidns.com"
+      },
+      {
+        "type": "https",
+        "tag": "cf-dns",
+        "detour": "📦 sing-box",
+        "domain_resolver": "hosts_fix",
+        "server": "cloudflare-dns.com"
+      },
+      {
+        "type": "https",
+        "tag": "google-dns",
+        "detour": "📦 sing-box",
+        "domain_resolver": "hosts_fix",
+        "server": "dns.google"
+      }
+    ],
+    "rules": [
+      {
+        "domain_suffix": [
+          ".googleapis.com",
+          ".google.com"
+        ],
+        "server": "google-dns"
+      },
+      {
+        "rule_set": [
+          "geosite-google",
+          "geosite-youtube",
+          "geosite-instagram",
+          "proxy",
+          "games",
+          "ai",
+          "gfw",
+          "global-media",
+          "google-sns",
+          "android-sys"
+        ],
+        "server": "google-dns"
+      },
+      {
+        "rule_set": [
+          "geosite_adguard",
+          "geosite-category-ads-all",
+          "ads-extra"
+        ],
+        "action": "reject"
+      },
+      {
+        "ip_version": 6,
+        "action": "reject"
+      },
+      {
+        "query_type": "AAAA",
+        "action": "reject"
+      },
+      {
+        "query_type": [
+          "SVCB",
+          "HTTPS",
+          "PTR"
+        ],
+        "action": "reject"
+      },
+      {
+        "rule_set": [
+          "cn",
+          "private",
+          "microsoft-cn",
+          "apple-cn",
+          "games-cn",
+          "networktest"
+        ],
+        "server": "pk-dns"
+      },
+      {
+        "rule_set": "fakeip-filter",
+        "server": "pk-dns"
+      },
+      {
+        "clash_mode": "direct",
+        "server": "pk-dns"
+      },
+      {
+        "rule_set": "google-cn",
+        "server": "google-dns"
+      },
+      {
+        "clash_mode": "global",
+        "server": "fakeip"
+      }
+    ],
+    "final": "cf-dns",
+    "reverse_mapping": true,
+    "strategy": "ipv4_only",
+    "cache_capacity": 16384
+  },
+  "ntp": {
+    "enabled": true,
+    "interval": "30m0s",
+    "server": "ntp.aliyun.com",
+    "server_port": 123
+  },
+  "inbounds": [
+    {
+      "type": "tun",
+      "tag": "tun-in",
+      "mtu": 1500,
+      "address": "10.8.0.1/24",
+      "auto_route": true,
+      "strict_route": true,
+      "udp_timeout": "5m0s",
+      "stack": "mixed",
+      "endpoint_independent_nat": true
+    }
+  ],
+  "outbounds": [
+    {
+      "type": "selector",
+      "tag": "🚦 FINAL",
+      "outbounds": [
+        "📦 sing-box",
+        "DIRECT",
+        "❌ REJECT-DROP"
+      ],
+      "default": "📦 sing-box",
+      "interrupt_exist_connections": true
+    },
+    {
+      "type": "block",
+      "tag": "❌ REJECT-DROP"
+    },
+    {
+      "type": "direct",
+      "tag": "DIRECT",
+      "domain_resolver": "alidns-quic"
+    },
+    {
+      "type": "selector",
+      "tag": "📦 sing-box",
+      "outbounds": [
+        "🟢 自动-测速",
+        "🔵 自动-稳定",
+        "节点名称"
+      ],
+      "default": "🟢 自动-测速",
+      "interrupt_exist_connections": true
+    },
+    {
+      "type": "urltest",
+      "tag": "🟢 自动-测速",
+      "outbounds": [
+        "节点名称"
+      ],
+      "url": "http://www.gstatic.com/generate_204",
+      "interval": "10m0s",
+      "tolerance": 100,
+      "idle_timeout": "30m0s"
+    },
+    {
+      "type": "urltest",
+      "tag": "🔵 自动-稳定",
+      "outbounds": [
+        "节点名称"
+      ],
+      "url": "http://www.gstatic.com/generate_204",
+      "interval": "15m0s",
+      "tolerance": 30,
+      "idle_timeout": "1h0m0s"
+    },
+    {
+      "type": "selector",
+      "tag": "🧭 Google Services",
+      "outbounds": [
+        "📦 sing-box",
+        "DIRECT"
+      ],
+      "default": "📦 sing-box",
+      "interrupt_exist_connections": true
+    },
+    {
+      "type": "selector",
+      "tag": "📬 Google FCM",
+      "outbounds": [
+        "📦 sing-box",
+        "DIRECT",
+        "🧭 Google Services"
+      ],
+      "default": "📦 sing-box",
+      "interrupt_exist_connections": true
+    },
+    {
+      "type": "selector",
+      "tag": "🍎 Apple",
+      "outbounds": [
+        "DIRECT",
+        "📦 sing-box"
+      ],
+      "default": "DIRECT",
+      "interrupt_exist_connections": true
+    },
+    {
+      "type": "selector",
+      "tag": "📺 StreamingME",
+      "outbounds": [
+        "📦 sing-box",
+        "DIRECT"
+      ],
+      "default": "📦 sing-box",
+      "interrupt_exist_connections": true
+    },
+    {
+      "type": "selector",
+      "tag": "🪟 Microsoft",
+      "outbounds": [
+        "DIRECT",
+        "📦 sing-box"
+      ],
+      "default": "DIRECT",
+      "interrupt_exist_connections": true
+    },
+    {
+      "type": "selector",
+      "tag": "📠 Telegram",
+      "outbounds": [
+        "📦 sing-box"
+      ],
+      "default": "📦 sing-box",
+      "interrupt_exist_connections": true
+    },
+    {
+      "type": "selector",
+      "tag": "🇨🇳 国内流量",
+      "outbounds": [
+        "DIRECT",
+        "📦 sing-box"
+      ],
+      "default": "DIRECT",
+      "interrupt_exist_connections": true
+    },
+    {
+      "type": "selector",
+      "tag": "GLOBAL",
+      "outbounds": [
+        "📦 sing-box",
+        "DIRECT"
+      ],
+      "default": "📦 sing-box",
+      "interrupt_exist_connections": true
+    },
+//节点配置
+  ],
+  "route": {
+    "rules": [
+      {
+        "action": "sniff"
+      },
+      {
+        "type": "logical",
+        "mode": "or",
+        "rules": [
+          {
+            "port": 53
+          },
+          {
+            "protocol": "dns"
+          }
+        ],
+        "action": "hijack-dns"
+      },
+      {
+        "ip_cidr": "0.0.0.0/8",
+        "action": "reject"
+      },
+      {
+        "ip_cidr": [
+          "192.168.0.0/16",
+          "172.16.0.0/12",
+          "127.0.0.0/8",
+          "fe80::/10"
+        ],
+        "outbound": "DIRECT"
+      },
+      {
+        "domain_suffix": "cdn.jsdelivr.net",
+        "outbound": "DIRECT"
+      },
+      {
+        "protocol": "quic",
+        "action": "reject"
+      },
+      {
+        "ip_version": 6,
+        "action": "reject"
+      },
+      {
+        "clash_mode": "direct",
+        "outbound": "DIRECT"
+      },
+      {
+        "clash_mode": "global",
+        "outbound": "GLOBAL"
+      },
+      {
+        "domain_suffix": "mtalk.google.com",
+        "outbound": "📬 Google FCM"
+      },
+      {
+        "rule_set": "geosite-google",
+        "outbound": "🧭 Google Services"
+      },
+      {
+        "rule_set": "fcm",
+        "outbound": "📬 Google FCM"
+      },
+      {
+        "rule_set": "telegram",
+        "outbound": "📠 Telegram"
+      },
+      {
+        "rule_set": [
+          "netflix",
+          "disney",
+          "geosite-youtube",
+          "spotify",
+          "primevideo"
+        ],
+        "outbound": "📺 StreamingME"
+      },
+      {
+        "rule_set": [
+          "cn",
+          "cnip",
+          "games-cn",
+          "private",
+          "google-cn",
+          "networktest"
+        ],
+        "outbound": "🇨🇳 国内流量"
+      },
+      {
+        "rule_set": "microsoft-cn",
+        "outbound": "🪟 Microsoft"
+      },
+      {
+        "rule_set": "apple-cn",
+        "outbound": "🍎 Apple"
+      },
+      {
+        "domain_suffix": "api.sec.miui.com",
+        "outbound": "DIRECT"
+      },
+      {
+        "ip_is_private": true,
+        "outbound": "DIRECT"
+      },
+      {
+        "rule_set": [
+          "geosite-google",
+          "geosite-youtube",
+          "geosite-instagram",
+          "telegram",
+          "telegramip",
+          "proxy",
+          "gfw",
+          "global-media",
+          "google-sns",
+          "games",
+          "ai",
+          "fcm",
+          "android-sys"
+        ],
+        "outbound": "📦 sing-box"
+      },
+      {
+        "package_name": [
+          "com.google.android.youtube",
+          "app.revanced.android.youtube",
+          "org.telegram.messenger",
+          "org.telegram.messenger.beta",
+          "com.twitter.android",
+          "com.zhiliaoapp.musically",
+          "com.zhiliaoapp.musically.go",
+          "com.discord",
+          "com.reddit.frontpage",
+          "com.spotify.music",
+          "tv.twitch.android.app"
+        ],
+        "outbound": "📦 sing-box"
+      },
+      {
+        "ip_cidr": "198.18.0.0/15",
+        "outbound": "📦 sing-box"
+      },
+      {
+        "rule_set": [
+          "geosite_adguard",
+          "geosite-category-ads-all",
+          "ads-extra",
+          "anti_fraud"
+        ],
+        "action": "reject"
+      },
+      {
+        "protocol": [
+          "stun",
+          "dtls"
+        ],
+        "action": "reject"
+      },
+      {
+        "network": "udp",
+        "port": [
+          69,
+          123,
+          137,
+          138,
+          139,
+          445,
+          1900,
+          5353
+        ],
+        "action": "reject"
+      },
+      {
+        "network": "tcp",
+        "port": [
+          21,
+          23,
+          445,
+          1080,
+          1433,
+          3128,
+          3306,
+          3389,
+          5432,
+          5900,
+          666,
+          1243,
+          27374,
+          31337,
+          4444
+        ],
+        "action": "reject"
+      },
+      {
+        "outbound": "🚦 FINAL"
+      }
+    ],
+    "rule_set": [
+      {
+        "type": "remote",
+        "tag": "geosite-category-ads-all",
+        "url": "https://cdn.jsdelivr.net/gh/SagerNet/sing-geosite@rule-set/geosite-category-ads-all.srs",
+        "download_detour": "DIRECT",
+        "update_interval": "48h0m0s"
+      },
+      {
+        "type": "remote",
+        "tag": "geosite_adguard",
+        "url": "https://cdn.jsdelivr.net/gh/217heidai/adblockfilters@main/rules/adblocksingbox.srs",
+        "download_detour": "DIRECT",
+        "update_interval": "48h0m0s"
+      },
+      {
+        "type": "remote",
+        "tag": "geosite-google",
+        "url": "https://cdn.jsdelivr.net/gh/SagerNet/sing-geosite@rule-set/geosite-google.srs",
+        "download_detour": "DIRECT",
+        "update_interval": "48h0m0s"
+      },
+      {
+        "type": "remote",
+        "tag": "proxy",
+        "url": "https://cdn.jsdelivr.net/gh/DustinWin/ruleset_geodata@sing-box-ruleset/proxy.srs",
+        "download_detour": "DIRECT",
+        "update_interval": "48h0m0s"
+      },
+      {
+        "type": "remote",
+        "tag": "games",
+        "url": "https://cdn.jsdelivr.net/gh/DustinWin/ruleset_geodata@sing-box-ruleset/games.srs",
+        "download_detour": "DIRECT",
+        "update_interval": "48h0m0s"
+      },
+      {
+        "type": "remote",
+        "tag": "ai",
+        "url": "https://cdn.jsdelivr.net/gh/DustinWin/ruleset_geodata@sing-box-ruleset/ai.srs",
+        "download_detour": "DIRECT",
+        "update_interval": "48h0m0s"
+      },
+      {
+        "type": "remote",
+        "tag": "private",
+        "url": "https://cdn.jsdelivr.net/gh/DustinWin/ruleset_geodata@sing-box-ruleset/private.srs",
+        "download_detour": "DIRECT",
+        "update_interval": "48h0m0s"
+      },
+      {
+        "type": "remote",
+        "tag": "cn",
+        "url": "https://cdn.jsdelivr.net/gh/DustinWin/ruleset_geodata@sing-box-ruleset/cn.srs",
+        "download_detour": "DIRECT",
+        "update_interval": "48h0m0s"
+      },
+      {
+        "type": "remote",
+        "tag": "microsoft-cn",
+        "url": "https://cdn.jsdelivr.net/gh/DustinWin/ruleset_geodata@sing-box-ruleset/microsoft-cn.srs",
+        "download_detour": "DIRECT",
+        "update_interval": "48h0m0s"
+      },
+      {
+        "type": "remote",
+        "tag": "apple-cn",
+        "url": "https://cdn.jsdelivr.net/gh/DustinWin/ruleset_geodata@sing-box-ruleset/apple-cn.srs",
+        "download_detour": "DIRECT",
+        "update_interval": "48h0m0s"
+      },
+      {
+        "type": "remote",
+        "tag": "google-cn",
+        "url": "https://cdn.jsdelivr.net/gh/DustinWin/ruleset_geodata@sing-box-ruleset/google-cn.srs",
+        "download_detour": "DIRECT",
+        "update_interval": "48h0m0s"
+      },
+      {
+        "type": "remote",
+        "tag": "games-cn",
+        "url": "https://cdn.jsdelivr.net/gh/DustinWin/ruleset_geodata@sing-box-ruleset/games-cn.srs",
+        "download_detour": "DIRECT",
+        "update_interval": "48h0m0s"
+      },
+      {
+        "type": "remote",
+        "tag": "networktest",
+        "url": "https://cdn.jsdelivr.net/gh/DustinWin/ruleset_geodata@sing-box-ruleset/networktest.srs",
+        "download_detour": "DIRECT",
+        "update_interval": "48h0m0s"
+      },
+      {
+        "type": "remote",
+        "tag": "telegramip",
+        "url": "https://cdn.jsdelivr.net/gh/DustinWin/ruleset_geodata@sing-box-ruleset/telegramip.srs",
+        "download_detour": "DIRECT",
+        "update_interval": "48h0m0s"
+      },
+      {
+        "type": "remote",
+        "tag": "cnip",
+        "url": "https://cdn.jsdelivr.net/gh/DustinWin/ruleset_geodata@sing-box-ruleset/cnip.srs",
+        "download_detour": "DIRECT",
+        "update_interval": "48h0m0s"
+      },
+      {
+        "type": "remote",
+        "tag": "geosite-youtube",
+        "url": "https://cdn.jsdelivr.net/gh/SagerNet/sing-geosite@rule-set/geosite-youtube.srs",
+        "download_detour": "DIRECT",
+        "update_interval": "48h0m0s"
+      },
+      {
+        "type": "remote",
+        "tag": "telegram",
+        "url": "https://cdn.jsdelivr.net/gh/SagerNet/sing-geosite@rule-set/geosite-telegram.srs",
+        "download_detour": "DIRECT",
+        "update_interval": "48h0m0s"
+      },
+      {
+        "type": "remote",
+        "tag": "gfw",
+        "url": "https://cdn.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@sing/geo/geosite/gfw.srs",
+        "download_detour": "DIRECT",
+        "update_interval": "48h0m0s"
+      },
+      {
+        "type": "remote",
+        "tag": "fcm",
+        "url": "https://cdn.jsdelivr.net/gh/senshinya/singbox_ruleset@main/rule/GoogleFCM/GoogleFCM.srs",
+        "download_detour": "DIRECT",
+        "update_interval": "48h0m0s"
+      },
+      {
+        "type": "remote",
+        "tag": "anti_fraud",
+        "url": "https://cdn.jsdelivr.net/gh/hwsaya/nothing@main/rules/FuckFZ.json",
+        "download_detour": "DIRECT",
+        "update_interval": "48h0m0s"
+      },
+      {
+        "type": "remote",
+        "tag": "fakeip-filter",
+        "url": "https://cdn.jsdelivr.net/gh/DustinWin/ruleset_geodata@sing-box-ruleset/fakeip-filter.srs",
+        "download_detour": "DIRECT",
+        "update_interval": "48h0m0s"
+      },
+      {
+        "type": "remote",
+        "tag": "geosite-instagram",
+        "url": "https://cdn.jsdelivr.net/gh/SagerNet/sing-geosite@rule-set/geosite-instagram.srs",
+        "download_detour": "DIRECT",
+        "update_interval": "48h0m0s"
+      },
+      {
+        "type": "remote",
+        "tag": "global-media",
+        "url": "https://cdn.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@sing/geo/geosite/category-entertainment.srs",
+        "download_detour": "DIRECT",
+        "update_interval": "48h0m0s"
+      },
+      {
+        "type": "remote",
+        "tag": "google-sns",
+        "url": "https://cdn.jsdelivr.net/gh/senshinya/singbox_ruleset@main/rule/Google/Google.srs",
+        "download_detour": "DIRECT",
+        "update_interval": "48h0m0s"
+      },
+      {
+        "type": "remote",
+        "tag": "android-sys",
+        "url": "https://cdn.jsdelivr.net/gh/senshinya/singbox_ruleset@main/rule/Android/Android.srs",
+        "download_detour": "DIRECT",
+        "update_interval": "48h0m0s"
+      },
+      {
+        "type": "remote",
+        "tag": "ads-extra",
+        "url": "https://cdn.jsdelivr.net/gh/DustinWin/ruleset_geodata@sing-box-ruleset/ads.srs",
+        "download_detour": "DIRECT",
+        "update_interval": "48h0m0s"
+      },
+      {
+        "type": "remote",
+        "tag": "netflix",
+        "url": "https://cdn.jsdelivr.net/gh/DustinWin/ruleset_geodata@sing-box-ruleset/netflix.srs",
+        "download_detour": "DIRECT",
+        "update_interval": "48h0m0s"
+      },
+      {
+        "type": "remote",
+        "tag": "disney",
+        "url": "https://cdn.jsdelivr.net/gh/DustinWin/ruleset_geodata@sing-box-ruleset/disney.srs",
+        "download_detour": "DIRECT",
+        "update_interval": "48h0m0s"
+      },
+      {
+        "type": "remote",
+        "tag": "spotify",
+        "url": "https://cdn.jsdelivr.net/gh/DustinWin/ruleset_geodata@sing-box-ruleset/spotify.srs",
+        "download_detour": "DIRECT",
+        "update_interval": "48h0m0s"
+      },
+      {
+        "type": "remote",
+        "tag": "primevideo",
+        "url": "https://cdn.jsdelivr.net/gh/DustinWin/ruleset_geodata@sing-box-ruleset/primevideo.srs",
+        "download_detour": "DIRECT",
+        "update_interval": "48h0m0s"
+      }
+    ],
+    "final": "🚦 FINAL",
+    "auto_detect_interface": true,
+    "default_domain_resolver": "alidns-quic"
+  },
+  "experimental": {
+    "cache_file": {
+      "enabled": true,
+      "path": "cache.db",
+      "cache_id": "cinchov",
+      "store_fakeip": true,
+      "store_rdrc": true,
+      "rdrc_timeout": "168h0m0s"
+    },
+    "clash_api": {
+      "external_controller": "127.0.0.1:9090",
+      "external_ui": "ui",
+      "external_ui_download_url": "",
+      "external_ui_download_detour": "DIRECT",
+      "secret": "",
+      "default_mode": "rule"
+    }
+  }
+}
