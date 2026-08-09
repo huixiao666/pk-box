@@ -368,16 +368,6 @@
         "action": "sniff"
       },
       {
-        "domain_suffix": "one.one.one.one",
-        "action": "route-options",
-        "override_address": "1.1.1.1"
-      },
-      {
-        "domain_suffix": ".google.com",
-        "action": "route-options",
-        "override_address": "8.8.8.8"
-      },
-      {
         "action": "route-options",
         "udp_disable_domain_unmapping": true,
         "udp_connect": true
