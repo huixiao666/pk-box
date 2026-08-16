@@ -479,7 +479,7 @@
           "com.netease.cloudmusic",
           "cn.wps.moffice_eng",
           "com.unionpay",
-          "com.bankcomm.*"
+          "com.bankcomm."
         ],
         "outbound": "🇨🇳 国内流量"
       },
@@ -511,7 +511,7 @@
           "com.google.android.apps.translate",
           "com.google.android.keep",
           "com.snapchat.android",
-          "com.tiktok.*",
+          "com.tiktok.",
           "com.android.vending"
         ],
         "outbound": "📦 sing-box"
@@ -592,7 +592,6 @@
           "ai",
           "games",
           "microsoft-cn",
-          "google-cn",
           "apple-cn",
           "games-cn",
           "networktest",
