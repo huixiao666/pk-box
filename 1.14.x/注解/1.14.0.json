@@ -1,0 +1,797 @@
+{ // 整个配置文件的根节点开始。Sing-box 使用强类型的 JSON 结构进行配置。
+  "log": { // 日志模块开始。用于控制程序运行时的输出信息。
+    "level": "trace", // 日志级别设置为 trace（追踪级别）。这是最详细的级别，包含所有底层细节。新旧版区别：一般排错用 trace/debug，日常生产环境建议改成 info 或 warn 减少性能开销。
+    "timestamp": true // 开启日志时间戳。在每一行日志前加上当前时间，方便排查断网等具体发生的时间点。
+  }, // 日志模块结束。
+  "dns": { // DNS 模块开始。新版 Sing-box 对 DNS 模块进行了大重构，从简单的直连/代理，演变成了支持异步、独立评估、按规则竞速的高级模块。
+    "servers": [ // DNS 服务器列表开始。在这里定义所有后续要使用的 DNS 服务器，供 rules 调用。
+      { // 第一个 DNS 服务器定义开始。
+        "type": "hosts", // 服务器类型：静态 hosts。这种类型不发起网络请求，直接通过预定义字典返回 IP。
+        "tag": "hosts_fix", // 给这个服务器打上标签名为 hosts_fix，这是它的唯一标识，后续路由依赖此标签。
+        "predefined": { // predefined 定义具体的域名和 IP 的键值对映射（静态劫持）。
+          "cloudflare-dns.com": [ // 匹配 cloudflare-dns 的 DoH 域名。
+            "1.1.1.1", // 返回 IPv4 地址。
+            "1.0.0.1" // 备用 IPv4 地址。防止底层 DNS 无法解析安全 DNS 域名导致死循环（即自举问题）。
+          ], // cloudflare-dns.com 映射结束。
+          "security.cloudflare-dns.com": [ // 匹配 Cloudflare 恶意软件过滤版 DNS 域名。
+            "1.1.1.2", // 返回其固定 IP。
+            "1.0.0.2" // 备用固定 IP。
+          ], // security.cloudflare-dns.com 映射结束。
+          "dns.google": [ // 匹配 Google 的 DoH 域名。
+            "8.8.8.8", // Google 主 DNS IP。
+            "8.8.4.4" // Google 备用 DNS IP。解决代理节点去解析 dns.google 时的死循环风险。
+          ], // dns.google 映射结束。
+          "dns.alidns.com": [ // 匹配阿里 DNS 域名。
+            "223.5.5.5", // 阿里公共 DNS。
+            "223.6.6.6" // 阿里公共备用 DNS。用于直连环境的快速解析。
+          ], // dns.alidns.com 映射结束。
+          "raw.githubusercontent.com": [ // 匹配 Github RAW 域名，通常用于下载规则集（Rule set）。
+            "185.199.108.133", // 强制指定有效的 Github CDN IP。
+            "185.199.109.133", // 防止国内 DNS 污染该域名导致规则更新失败。
+            "185.199.110.133", // 多个 IP 提供冗余。
+            "185.199.111.133" // 疑惑点：这种写死 IP 的方法应对暂时污染有效，但若 CDN IP 变更可能失效，需定期维护。
+          ] // raw.githubusercontent.com 映射结束。
+        } // predefined 对象结束。
+      }, // hosts DNS 服务器配置结束。
+      { // 第二个 DNS 服务器定义开始。
+        "type": "local", // 服务器类型：local。利用操作系统自带的 DNS 解析机制（如 Android/Windows 系统默认 DNS）。
+        "tag": "pkpk-dns" // 标签为 pkpk-dns。通常用于处理无特征或完全国内的域名解析。
+      }, // local DNS 服务器配置结束。
+      { // 第三个 DNS 服务器定义开始。
+        "type": "udp", // 服务器类型：传统的 UDP DNS 请求（端口默认为 53）。
+        "tag": "pk-dns", // 标签为 pk-dns。通常作为国内主 DNS。
+        "server": "192.168.3.1" // 目标 DNS 服务器地址。疑惑/说明：这里写了内网网关 IP（通常是家里的路由器）。利用上级路由器的缓存加速解析。
+      }, // udp DNS 服务器配置结束。
+      { // 第四个 DNS 服务器定义开始。
+        "type": "fakeip", // 服务器类型：fakeip（伪装 IP）。这是非常关键的新特性。返回假的局域网 IP 以秒解域名，等实际流量发生时再通过代理服务器进行远端解析。
+        "tag": "fakeip", // 标签名为 fakeip。
+        "inet4_range": "198.18.0.0/15" // 划分假 IP 的网段。RFC2544 规定的保留网段，极大减少与真实内网 IP 冲突的概率。旧版 Clash 常用 198.18.0.1/16。
+      }, // fakeip 服务器配置结束。
+      { // 第五个 DNS 服务器配置开始。
+        "type": "quic", // 服务器类型：DoQ (DNS over QUIC)。基于 UDP 的加密 DNS，新版特性，连接速度比 DoH (TCP) 更快，适合弱网。
+        "tag": "alidns-quic", // 标签为 alidns-quic。
+        "detour": "DIRECT", // detour（绕道/强制出站）：指定该 DNS 请求必须通过 "DIRECT"（直连）策略发出，不走代理。
+        "server": "dns.alidns.com" // 请求的目标服务器域名，上文 hosts 中已防止其被污染。
+      }, // quic DNS 服务器配置结束。
+      { // 第六个 DNS 服务器配置开始。
+        "type": "https", // 服务器类型：DoH (DNS over HTTPS)。基于 HTTP/2 的加密 DNS。
+        "tag": "cf-dns", // 标签为 cf-dns (Cloudflare DNS)。
+        "detour": "📦 sing-box", // 关键点：该 DNS 请求强制走名为 "📦 sing-box" 的代理出站！保证获取到未被污染的海外 IP。
+        "server": "cloudflare-dns.com" // 请求的目标 DoH 域名。
+      }, // cf-dns 配置结束。
+      { // 第七个 DNS 服务器配置开始。
+        "type": "https", // 类型：DoH。
+        "tag": "google-dns", // 标签为 google-dns。
+        "detour": "📦 sing-box", // 同样强制通过代理出站发出请求。
+        "server": "dns.google" // 目标服务器为 Google DNS。
+      }, // google-dns 配置结束。
+      { // 第八个 DNS 服务器配置开始。
+        "type": "https", // 类型：DoH。
+        "tag": "cfs-dns", // 标签为 cfs-dns (Cloudflare Security)。
+        "detour": "📦 sing-box", // 强制代理出站。
+        "server": "security.cloudflare-dns.com" // 使用具备恶意站点过滤功能的 CF DNS 节点。
+      } // cfs-dns 配置结束。
+    ], // DNS 服务器列表定义完毕。
+    "rules": [ // DNS 路由规则列表开始。这是新版 1.8.0+ 乃至 1.10.0+ 最强特性的集中体现（并发与竞速）。匹配是从上往下进行的。
+      { // 第 1 条 DNS 规则。
+        "query_type": [ // 匹配 DNS 查询类型。
+          "SVCB", // 匹配 SVCB（Service Binding）类型记录。iOS 设备极常发起此类请求。
+          "HTTPS", // 匹配 HTTPS 类型的 DNS 记录（Apple 等系统喜欢用其加速建立连接）。
+          "PTR" // 匹配反向解析记录（IP 到域名）。
+        ], // 匹配类型结束。
+        "action": "reject", // 动作：拒绝解析。说明：拦截这些新奇/不常用的请求类型可以大幅减少无意义的代理流量，加速日常上网体验。
+        "disable_cache": true // 拒绝且不缓存此结果。防止后续合规请求受到影响。
+      }, // 第 1 条规则结束。
+      { // 第 2 条 DNS 规则（B站相关直连 1）。
+        "domain_suffix": [ // 匹配域名后缀。
+          ".bilivideo.com", // B站视频 CDN。
+          ".bilibili.com", // B站主域名。
+          ".biliapi.com", // B站 API 接口。
+          ".hdslb.com", // B站静态资源。
+          ".biliimg.com", // B站图片。
+          ".acgvideo.com" // B站旧版 CDN。
+        ], // 匹配域名结束。
+        "action": "evaluate", // 【新版核心机制】：评估阶段 (evaluate)！它不会立刻向客户端返回结果，而是后台静默向指定的 server 发起查询。
+        "server": "pk-dns", // 向路由器 DNS (192.168.3.1) 发起查询。
+        "tag": "bl1" // 给这次后台查询任务打上任务标签 "bl1"。
+      }, // 第 2 条规则结束。
+      { // 第 3 条 DNS 规则。
+        "match_response": "bl1", // 匹配标签为 "bl1" 的后台查询结果。一旦上面的查询有结果返回...
+        "action": "respond", // 动作：立即响应 (respond) 给客户端（即浏览器/APP）。
+        "race": true // 开启竞速模式。如果是并发查询，谁先返回有效 IP 就采用谁的结果。
+      }, // 第 3 条规则结束。
+      { // 第 4 条 DNS 规则（B站相关并发 2）。
+        "domain_suffix": [ // 同样的 B站域名列表。
+          ".bilivideo.com", // 说明：这段设计的核心是“双 DNS 并发测速机制”。
+          ".bilibili.com", // 保证流媒体 CDN 能解析到最快最好的 IP。
+          ".biliapi.com", // (内容同上，不再赘述)
+          ".hdslb.com", 
+          ".biliimg.com", 
+          ".acgvideo.com" 
+        ], // 匹配域名结束。
+        "action": "evaluate", // 依然是后台评估任务。
+        "server": "pkpk-dns", // 换一个服务器查询：向 local (本地系统 DNS) 发起查询。
+        "tag": "bl2", // 任务标签为 "bl2"。
+        "speculative": true // 【新版高级特性】：speculative（推测/投机查询）。它不会阻塞整体匹配流程，而是作为一个“副任务”同时抛弃去执行。实现真正的并发。
+      }, // 第 4 条规则结束。
+      { // 第 5 条 DNS 规则。
+        "match_response": "bl2", // 接收 "bl2" 任务返回的结果。
+        "action": "respond", // 响应给客户端。
+        "race": true // 与 bl1 竞速，本地 DNS 和 路由器 DNS 谁先返回 B 站 IP，就用谁！极具极客精神的优化。
+      }, // 第 5 条规则结束。
+      { // 第 6 条 DNS 规则（小米服务直连 1）。
+        "domain_suffix": [ // 匹配小米相关域名。
+          ".miui.com", // MIUI 系统相关。
+          ".xiaomi.com", // 小米主域名。
+          ".xiaomiyun.com" // 小米云服务。
+        ], // 域名结束。
+        "action": "evaluate", // 创建评估任务。
+        "server": "pk-dns", // 请求路由器 DNS。
+        "tag": "mi1" // 标签为 mi1。
+      }, // 第 6 条规则结束。
+      { // 第 7 条 DNS 规则。
+        "match_response": "mi1", // 匹配 mi1 结果。
+        "action": "respond", // 立即响应。
+        "race": true // 参与竞速。
+      }, // 第 7 条规则结束。
+      { // 第 8 条 DNS 规则（小米服务并发 2）。
+        "domain_suffix": [ // 同上的小米域名。
+          ".miui.com", 
+          ".xiaomi.com", 
+          ".xiaomiyun.com" 
+        ], // 域名结束。
+        "action": "evaluate", // 评估任务。
+        "server": "pkpk-dns", // 请求本地系统 DNS。
+        "tag": "mi2", // 标签 mi2。
+        "speculative": true // 并发投机查询。
+      }, // 第 8 条规则结束。
+      { // 第 9 条 DNS 规则。
+        "match_response": "mi2", // 匹配 mi2。
+        "action": "respond", // 响应。
+        "race": true // 参与竞速。
+      }, // 第 9 条规则结束。
+      { // 第 10 条 DNS 规则（Google API 代理 1）。
+        "domain": ".googleapis.com", // 匹配具体的 googleapi 域名（精确匹配模式）。
+        "action": "evaluate", // 评估任务。
+        "server": "cfs-dns", // 向走代理出站的 Cloudflare Security DoH 发起请求。
+        "tag": "cfs" // 标签为 cfs。
+      }, // 第 10 条规则结束。
+      { // 第 11 条 DNS 规则（Google API 并发 2）。
+        "domain": ".googleapis.com", // 同上域名。
+        "action": "evaluate", // 评估任务。
+        "server": "google-dns", // 向走代理出站的 Google DoH 发起请求。
+        "tag": "ga", // 标签为 ga。
+        "speculative": true // 并发执行，防止某一个海外 DNS 延迟过高。
+      }, // 第 11 条规则结束。
+      { // 第 12 条 DNS 规则。
+        "match_response": "cfs", // 拿到 CF 的代理解析结果。
+        "action": "respond", // 响应给客户端。
+        "race": true // CF 和 Google 谁解的快用谁。
+      }, // 第 12 条规则结束。
+      { // 第 13 条 DNS 规则。
+        "match_response": "ga", // 拿到 Google 的代理解析结果。
+        "action": "respond", // 响应。
+        "race": true // 竞速机制激活。
+      }, // 第 13 条规则结束。
+      { // 第 14 条 DNS 规则（时间同步服务）。
+        "domain_suffix": [ // 各种主流 NTP 时间同步服务器。
+          ".pool.ntp.org", // 开源社区时间。
+          ".nist.gov", // 美国国家标准时间。
+          ".time.apple.com", // 苹果时间。
+          ".time.google.com", // 谷歌时间。
+          ".time.windows.com" // 微软时间。
+        ], // 域名结束。
+        "server": "pkpk-dns" // 说明：此处使用了旧版的传统语法（没用 evaluate），直接匹配后交给 local DNS 解析。因为 NTP 流量非常基础，越简单越好，不搞花里胡哨。
+      }, // 第 14 条规则结束。
+      { // 第 15 条 DNS 规则（广告拦截）。
+        "rule_set": [ // 【新版巨大变革】：调用 Rule Set 规则集。这是 1.8.0 之后用来替代繁冗 domain 列表的神器，极大地降低了内存占用。
+          "geosite_adguard", // 调用下方名为 geosite_adguard 的去广告规则集。
+          "geosite-category-ads-all", // 调用全量广告规则集。
+          "anti_fraud" // 调用反欺诈（如反诈中心等）规则集。
+        ], // 规则集结束。
+        "action": "reject" // 动作：一旦匹配上广告或反诈域名，直接在 DNS 层面拒绝解析（黑洞），达到去广告和隐私保护的目的。
+      }, // 第 15 条规则结束。
+      { // 第 16 条 DNS 规则（拦截 HTTPDNS）。
+        "rule_set": [ // 调用规则集。
+          "BlockHttpDNS", // 拦截国内大厂 App 自建的 HTTPDNS。
+          "AdGuardSDNSFilter" // AdGuard 规则过滤。
+        ], // 规则集结束。
+        "action": "reject" // 动作：拒绝。疑问：为什么要拦截 HTTPDNS？因为大厂 App 会用自己的 HTTPDNS 绕过系统代理机制导致广告漏网或免流失败，屏蔽后强迫其走系统标准 DNS 从而被 FakeIP 接管。
+      }, // 第 16 条规则结束。
+      { // 第 17 条 DNS 规则（国内厂商直连 1）。
+        "rule_set": [ // 规则集匹配。
+          "microsoft-cn", // 微软中国区。
+          "apple-cn", // 苹果中国区 CDN（加快 App Store 下载）。
+          "games-cn" // 国内游戏 CDN。
+        ], // 匹配结束。
+        "action": "evaluate", // 开始后台评估任务。
+        "server": "pk-dns", // 请求路由器 DNS。
+        "tag": "gm1" // 标签为 gm1。
+      }, // 第 17 条规则结束。
+      { // 第 18 条 DNS 规则（国内厂商并发 2）。
+        "rule_set": [ // 同上规则集。
+          "microsoft-cn", 
+          "apple-cn", 
+          "games-cn" 
+        ], // 匹配结束。
+        "action": "evaluate", // 后台任务。
+        "server": "pkpk-dns", // 请求本地系统 DNS。
+        "tag": "gm2", // 标签 gm2。
+        "speculative": true // 开启并发。
+      }, // 第 18 条规则结束。
+      { // 第 19 条 DNS 规则。
+        "match_response": "gm1", // 拿到 gm1 结果。
+        "action": "respond", // 响应。
+        "race": true // 参与竞速。
+      }, // 第 19 条规则结束。
+      { // 第 20 条 DNS 规则。
+        "match_response": "gm2", // 拿到 gm2 结果。
+        "action": "respond", // 响应。
+        "race": true // 本地与路由 DNS 测速优胜者胜出。
+      }, // 第 20 条规则结束。
+      { // 第 21 条 DNS 规则（国内全局兜底直连 1）。
+        "rule_set": "cn", // 调用包含海量中国大陆域名的规则集。
+        "action": "evaluate", // 评估。
+        "server": "pk-dns", // 查路由器 DNS。
+        "tag": "cn1" // 标签 cn1。
+      }, // 第 21 条规则结束。
+      { // 第 22 条 DNS 规则。
+        "match_response": "cn1", // 匹配 cn1。
+        "action": "respond", // 响应。
+        "race": true // 竞速。
+      }, // 第 22 条规则结束。
+      { // 第 23 条 DNS 规则（国内全局兜底并发 2）。
+        "rule_set": "cn", // 大陆域名集。
+        "action": "evaluate", // 评估。
+        "server": "pkpk-dns", // 查本地 DNS。
+        "tag": "cn2", // 标签 cn2。
+        "speculative": true // 并发。
+      }, // 第 23 条规则结束。
+      { // 第 24 条 DNS 规则。
+        "match_response": "cn2", // 匹配 cn2。
+        "action": "respond", // 响应。
+        "race": true // 双路测速完毕。至此所有国内域名都处理完毕，返回真实 IP，准备直连。
+      }, // 第 24 条规则结束。
+      { // 第 25 条 DNS 规则（Google 服务代理 1）。
+        "rule_set": "Google", // 包含所有 Google 及相关子域名。
+        "action": "evaluate", // 评估。
+        "server": "cf-dns", // 去查走代理的 Cloudflare DoH。
+        "tag": "g1" // 标签 g1。
+      }, // 第 25 条规则结束。
+      { // 第 26 条 DNS 规则（Google 服务代理并发 2）。
+        "rule_set": "Google", // Google 域名。
+        "action": "evaluate", // 评估。
+        "server": "google-dns", // 去查走代理的 Google DoH。
+        "tag": "g2", // 标签 g2。
+        "speculative": true // 并发查询。
+      }, // 第 26 条规则结束。
+      { // 第 27 条 DNS 规则。
+        "match_response": "g1", // CF 代理返回。
+        "action": "respond", // 响应。
+        "race": true // 竞速。
+      }, // 第 27 条规则结束。
+      { // 第 28 条 DNS 规则。
+        "match_response": "g2", // Google 代理返回。
+        "action": "respond", // 响应。
+        "race": true // 竞速完毕。保证 Google 域名拿到绝对无污染的可用 IP。
+      }, // 第 28 条规则结束。
+      { // 第 29 条 DNS 规则（全局兜底海外解析 1）。
+        "action": "evaluate", // 注意这里没有写匹配条件（domain 或 ruleset）！这意味着这是最底层的默认策略。任何前面没匹配上的域名（通常是被墙的海外域名）。
+        "server": "cf-dns", // 交给代理 CF DoH。
+        "tag": "cf" // 标签 cf。
+      }, // 第 29 条规则结束。
+      { // 第 30 条 DNS 规则（全局兜底海外解析 2）。
+        "action": "evaluate", // 同样无匹配条件，兜底。
+        "server": "google-dns", // 交给代理 Google DoH。
+        "tag": "gg", // 标签 gg。
+        "speculative": true // 开启并发。
+      }, // 第 30 条规则结束。
+      { // 第 31 条 DNS 规则。
+        "match_response": "cf", // 处理 cf 结果。
+        "action": "respond", // 响应。
+        "race": true // 竞速。
+      }, // 第 31 条规则结束。
+      { // 第 32 条 DNS 规则。
+        "match_response": "gg", // 处理 gg 结果。
+        "action": "respond", // 响应。
+        "race": true // 兜底代理 DNS 双路测速完成。
+      }, // 第 32 条规则结束。
+      { // 第 33 条 DNS 规则（极其核心的 FakeIP 接管）。
+        "server": "fakeip" // 最终兜底。疑惑：前面已经返回解析了，为啥还有这个？解答：新版 Sing-box 路由机制下，被路由模块标记为需要走代理的请求，由于其不需要真实远端 IP 来建立连接（由远端代理服务器去解析），因此这里直接给客户端塞一个 FakeIP 秒回，消除本地握手 DNS 延迟。
+      } // 第 33 条规则结束。
+    ], // DNS 规则配置完毕。
+    "final": "google-dns", // 默认兜底 DNS 服务器，如果所有的规则因为意外都没命中（理论上不可能），最后用哪个解析。
+    "strategy": "ipv4_only", // 解析策略：仅解析 IPv4（A记录）。对于目前大陆大部分家庭宽带和机场环境，关闭 IPv6 代理可减少很多怪异的断流问题，强推此设置。
+    "timeout": "10s", // DNS 请求超时时间设定为 10 秒。
+    "cache_capacity": 16384, // DNS 内存缓存容量：缓存 16384 条 DNS 记录，提高重复访问速度。
+    "optimistic": { // 乐观缓存机制（Sing-box 比较新的特性，借鉴自 Adguard/Clash Meta）。
+      "enabled": true, // 开启乐观缓存：在 DNS 记录 TTL 过期时，若有客户端请求，先立即返回旧记录，同时后台再去请求新记录并更新缓存。极大降低延迟。
+      "timeout": "5m0s" // 乐观缓存数据允许的最大“过期但仍使用”的超时时间，这里设为 5 分钟。
+    } // 乐观缓存配置结束。
+  }, // DNS 整个模块结束。
+  "http_clients": [ // HTTP 客户端配置开始。这是 Sing-box 1.10+ 新加入的模块，统一管理内部的所有 HTTP 发包（如下载规则集、延迟测试）。
+    { // 第一个客户端配置（默认）。
+      "tag": "default", // 标签名为 default，全局默认调用它。
+      "version": 2, // 优先使用 HTTP/2 版本，速度更快，握手开销小。
+      "stream_receive_window": 0, // 流接收窗口大小，0 代表使用系统/内部默认值。
+      "connection_receive_window": 0 // 连接接收窗口大小，同样 0 也是使用默认值。对于普通使用无需微调，保持 0 即可。
+    } // 默认客户端配置结束。
+  ], // HTTP 客户端模块结束。
+  "inbounds": [ // 入站配置开始。定义本机流量如何进入代理核心。
+    { // 只有 1 个入站配置：TUN 虚拟网卡。
+      "type": "tun", // 入站类型：tun（TUN 模式，接管操作系统三层网络，实现真·全局透明代理）。
+      "tag": "tun-in", // 给入站打标签 tun-in。
+      "mtu": 1500, // 最大传输单元设定为 1500 字节。通常物理网卡是 1500，设为一致避免分片产生额外开销。
+      "address": "30.0.0.1/24", // 给这个虚拟网卡分配的 IP 网段。此地址不同于上文 FakeIP 段，这是 TUN 本身的虚拟网关地址。
+      "dns_mode": "hijack", // DNS 模式：hijack（劫持）。新版特性！底层系统发出的所有端口为 53 的流量统统被强行塞入 Sing-box 的 dns 模块处理，防止任何 DNS 泄露。
+      "auto_route": true, // 【核心机制】：自动配置系统路由表。Sing-box 会自动向 Windows/macOS/Linux/Android 系统注入规则，使得所有流量流向 TUN 接口。旧版代理常常需要自己写 iptables 规则，现在直接交给核心。
+      "auto_redirect": true, // 开启后，仅将局域网以外的公网流量重定向到代理，进一步优化本地网络体验。
+      "strict_route": true, // 严格路由。防止某些狡猾的应用程序通过绑定特定的物理网卡来绕过虚拟网卡的代理接管。
+      "exclude_interface": [ // 排除监听特定的网络接口。
+        "wlan1", // 例如在安卓设备上开启热点时，热点流量不被代理（防冲突）。
+        "ap0" // 同样是热点或特定的物理网卡名。
+      ], // 排除接口结束。
+      "exclude_package": [ // 排除特定的安卓/系统应用程序包名（分应用代理功能）。说明：这部分仅在 Android 平台下生效。
+        "com.eg.android.AlipayGphone", // 排除支付宝，避免风控和付款慢。
+        "com.tencent.mm", // 排除微信，保证消息绝对稳定。
+        "com.xiaomi.market", // 排除小米应用商店，下载走本地宽带测速。
+        "com.taobao.taobao", // 排除淘宝，淘宝的 HTTPDNS 非常难搞，直连最稳。
+        "com.jingdong.app.mall", // 排除京东。
+        "com.ss.android.ugc.aweme", // 排除抖音，刷短视频直连即可，节约代理流量。
+        "tv.danmaku.bili", // 排除B站客户端。
+        "com.xiaomi.xmsf" // 排除小米推送服务，保证系统推送通道存活。
+      ], // 排除包名结束。
+      "udp_timeout": "5m0s", // UDP 连接闲置断开的超时时间为 5 分钟。防止打游戏时短暂掉线导致连接彻底销毁。
+      "udp_nat_max": 4096, // 限制最大的 UDP NAT 会话数为 4096。防止 P2P 软件瞬间发包导致代理核心内存耗尽崩溃。
+      "stack": "mixed", // 底层网络栈使用 mixed 模式。混合使用 gVisor 和 System 栈，在性能和兼容性之间取平衡。（最新版也有使用 lwip 的）。
+      "endpoint_independent_nat": true // 开启 Endpoint-Independent NAT (完全锥型 NAT)。极大改善游戏打洞和 P2P 连接，玩家必备。
+    } // TUN 入站配置结束。
+  ], // 入站模块结束。
+  "outbounds": [ // 出站配置开始。定义经过路由判定后的流量，具体发往世界哪个角落的服务器。
+    { // 第 1 个出站：直连。
+      "type": "direct", // 类型为直接连接（不走代理）。
+      "tag": "DIRECT", // 标签 DIRECT。大写显眼。
+      "domain_resolver": "pk-dns" // 【细节】：直连的流量在建立 TCP 时，强制使用名为 pk-dns (上文定义的 UDP 路由器 DNS) 去获取真实远端 IP，不依赖系统。
+    }, // 直连出站结束。
+    { // 第 2 个出站：人工选择器（代理核心节点组）。
+      "type": "selector", // 类型 selector，允许用户在客户端面板上手动点击切换节点。
+      "tag": "📦 sing-box", // 标签带个小图标，好看。这是整个代理链路的主干出口。
+      "outbounds": [ // 这个选择器中包含的子节点列表。
+        "🟢 自动-测速", // 引入下方的测速组。
+        "🔵 自动-稳定", // 引入下方的稳定组。
+        "pkpk1", // 这些是具体的代理节点名（比如香港 01）。因为原文件中是隐私信息，被替换成了 pkpk 占位符。
+        "pkpk2", // 具体节点 2。
+        "pkpk3", // 具体节点 3。
+        "pkpk4", // 具体节点 4。
+        "pkpk5", // 具体节点 5。
+        "pkpk7", // 跳过了 6，具体节点 7。
+        "pkpk8", // 具体节点 8。
+        "pkpk9", // 具体节点 9。
+        "pkpk10", // 具体节点 10。
+        "pkpk11", // 具体节点 11。
+        "pkpk12" // 具体节点 12。
+      ], // 包含节点结束。
+      "default": "pkpk3", // 启动时，默认高亮的节点选定为 pkpk3。
+      "interrupt_exist_connections": true // 当用户手动切换节点时，立即打断并关闭旧节点上的旧连接，让客户端立刻使用新节点重连，体验更清爽。
+    }, // 主干选择器出站结束。
+    { // 第 3 个出站：自动 URL 测试组（测速型）。
+      "type": "urltest", // 类型 urltest（类似于 Clash 的 url-test）。
+      "tag": "🟢 自动-测速", // 标签。
+      "outbounds": [ // 参与测速的所有具体节点。
+        "pkpk1", 
+        "pkpk2", 
+        "pkpk3", 
+        "pkpk4", 
+        "pkpk5", 
+        "pkpk7", 
+        "pkpk8", 
+        "pkpk9", 
+        "pkpk10", 
+        "pkpk11", 
+        "pkpk12"
+      ], // 测速节点结束。
+      "url": "http://www.gstatic.com/generate_204", // 探测目标为 Google 的 204 返回码接口。最标准的测速接口。
+      "interval": "10m0s", // 每隔 10 分钟自动跑一次全量测速。
+      "tolerance": 100, // 容差值设为 100 毫秒。意思是：如果新选出的节点延迟仅比当前节点好不到 100ms，则保持当前节点不切换，防止频繁网络抖动。
+      "idle_timeout": "30m0s" // 空闲超时：如果 30 分钟没有流量走这个组，就暂停测速，省电省流量。
+    }, // 测速组结束。
+    { // 第 4 个出站：自动 URL 测试组（稳定型）。
+      "type": "urltest", // 也是 urltest，但参数调校不同。
+      "tag": "🔵 自动-稳定", // 标签。
+      "outbounds": [ // 包含同样的节点。
+        "pkpk1", 
+        "pkpk2", 
+        "pkpk3", 
+        "pkpk4", 
+        "pkpk5", 
+        "pkpk7", 
+        "pkpk8", 
+        "pkpk9", 
+        "pkpk10", 
+        "pkpk11", 
+        "pkpk12"
+      ], // 节点结束。
+      "url": "http://www.gstatic.com/generate_204", // 同上测速地址。
+      "interval": "15m0s", // 测速间隔拉长到 15 分钟，降低探测频率，更加稳定。
+      "tolerance": 30, // 容差值调小到 30ms，意思是即使差距小，也尽可能切向更稳（可能更慢但响应快）的节点。这里的参数组合有点奇特，取决于个人喜好。
+      "idle_timeout": "1h0m0s" // 闲置 1 小时后才停测。
+    }, // 稳定组结束。
+    { // 第 5 个出站：针对 Google 服务的路由组。
+      "type": "selector", // 手动选择。
+      "tag": "🧭 Google Services", // 标签。
+      "outbounds": [ // 可选去向。
+        "📦 sing-box", // 默认走主代理干线出海。
+        "DIRECT" // 如果发生特殊情况（例如在国内搭建了反代），也可以选择直连。
+      ], 
+      "default": "📦 sing-box", // 默认代理出海。
+      "interrupt_exist_connections": true // 切换时打断旧连接。
+    }, // Google 服务组结束。
+    { // 第 6 个出站：针对 Google FCM（安卓推送通道）的路由组。
+      "type": "selector", // 同样是选择器。
+      "tag": "📬 Google FCM", // 标签 FCM 推送。
+      "outbounds": [ // 可选去向。
+        "📦 sing-box", // 代理。
+        "DIRECT", // 直连。
+        "🧭 Google Services" // 也可以直接继承上方 Google Service 的策略。
+      ], 
+      "default": "📦 sing-box", // FCM 是安卓系统灵魂，必须走代理保证送达率。
+      "interrupt_exist_connections": true // 切换打断。
+    }, // FCM 组结束。
+    { // 第 7 个出站：针对苹果生态流量的路由组。
+      "type": "selector", // 选择器。
+      "tag": "🍎 Apple", // 标签。
+      "outbounds": [ // 可选去向。
+        "DIRECT", // 默认直连，因为 Apple 服务在国内都有良好的 CDN 覆盖，代理反而可能慢或者被判定跨区风控。
+        "📦 sing-box" // 可选强制代理出海（如下载外区特定 App 时）。
+      ], 
+      "default": "DIRECT", // 默认为直连。
+      "interrupt_exist_connections": true // 切换打断。
+    }, // Apple 组结束。
+    { // 第 8 个出站：针对流媒体网站的路由组。
+      "type": "selector", // 选择器。
+      "tag": "📺 StreamingME", // 标签 Streaming (流媒体)。
+      "outbounds": [ // 包含。
+        "📦 sing-box", // 默认主干出海。实战中，这里应该引入某些具体的落地解锁节点组，但此配置用主干代替了。
+        "DIRECT" // 选项：直连（比如流媒体本身没被墙）。
+      ], 
+      "default": "📦 sing-box", // 默认代理。
+      "interrupt_exist_connections": true // 切换打断，这对于看视频中途换节点非常重要，否则画面会卡死直到旧连接超时。
+    }, // 流媒体组结束。
+    { // 第 9 个出站：微软生态路由组。
+      "type": "selector", // 选择器。
+      "tag": "🪟 Microsoft", // 标签。
+      "outbounds": [ // 选项。
+        "DIRECT", // 微软国内 CDN（如 Office 365, Windows 更新）很好，推荐直连。
+        "📦 sing-box" // 如果遇到网页版 Bing 等偶尔抽风的，可手动切代理。
+      ], 
+      "default": "DIRECT", // 默认直连。
+      "interrupt_exist_connections": true // 切换打断。
+    }, // 微软组结束。
+    { // 第 10 个出站：电报 Telegram 路由组。
+      "type": "selector", // 选择器。
+      "tag": "📠 Telegram", // 标签 TG。
+      "outbounds": [ 
+        "📦 sing-box" // TG 完全被墙，且对 IP 要求不高，直接抛给主干代理即可。没有放直连选项，因为绝对连不上。
+      ], 
+      "default": "📦 sing-box", // 默认主干。
+      "interrupt_exist_connections": true // 切换打断。
+    }, // TG 组结束。
+    { // 第 11 个出站：专门针对部分国内必须经过核心处理的流量分组。
+      "type": "selector", // 选择器。
+      "tag": "🇨🇳 国内流量", // 标签 国内。
+      "outbounds": [ 
+        "DIRECT", // 国内流量自然是默认直连最好。
+        "📦 sing-box" // 保留强制走代理的功能（供测试用）。
+      ], 
+      "default": "DIRECT", // 默认直连。
+      "interrupt_exist_connections": true // 切换打断。
+    }, // 国内流量组结束。
+    { // 第 12 个出站：全局杂项流量。
+      "type": "selector", // 选择器。
+      "tag": "GLOBAL", // 标签 GLOBAL。这并不是真全局，而是类似 Clash 中的 PROXY 组。
+      "outbounds": [ 
+        "📦 sing-box", // 发往主代理。
+        "DIRECT" // 发往直连。
+      ], 
+      "default": "📦 sing-box", // 遇到不好分类的国外杂项统统代理。
+      "interrupt_exist_connections": true // 切换打断。
+    }, // GLOBAL 组结束。
+    { // 第 13 个出站：最底层兜底规则出口。
+      "type": "selector", // 选择器。
+      "tag": "🚦 FINAL", // 标签 FINAL（即 Clash 中的 Match/漏网之鱼）。
+      "outbounds": [ 
+        "📦 sing-box", // 第一选择是代理出海（安全第一）。
+        "DIRECT", // 如果您觉得没匹配上的大概率是国内新网站，可手动切成直连。
+        "❌ REJECT-DROP" // 甚至可以直接拦截所有未在规则表中的怪异流量（高安全度需求）。
+      ], 
+      "default": "📦 sing-box", // 当前默认：未知流量走代理，防止真实 IP 泄露。
+      "interrupt_exist_connections": true // 切换打断。
+    }, // FINAL 组结束。
+    { // 第 14 个出站：黑洞丢弃节点。
+      "type": "block", // 类型 block，直接在 TCP/UDP 层面丢弃数据包不返回任何信息。
+      "tag": "❌ REJECT-DROP" // 标签。用于接收不想看到的广告、跟踪器等流量。
+    } // 黑洞节点结束。
+    //节点配置 // 注释占位符：实战中，这里应该粘贴机场订阅转换出来的几十个 Shadowsocks/Vmess/Trojan 节点的 JSON 定义！当前文件已作脱敏省略。
+  ], // 所有出站配置结束。
+  "route": { // 路由模块配置开始。它负责将 Inbounds 进来的流量，像交警一样指挥，根据规则指引到不同的 Outbounds 出去。匹配从上到下按顺序，命中即停止。
+    "rules": [ // 路由规则数组开始。
+      { // 第 1 条路由（非常硬核的新版特性功能：反向域名嗅探）。
+        "rule_set": "cn", // 调用 cn (中国) 规则集。
+        "invert": true, // 反转匹配：即匹配【不是】cn 的流量。
+        "action": "sniff" // 动作：sniff（嗅探）。【深度解释】：当纯 IP 流量（很多 App 内部直连 IP 不发 DNS）流经核心时，如果它不是国内 IP，引擎会尝试解开 TLS/HTTP 的包头（SNI），把真正的域名扒出来，用于后续的路由判断。这是透明代理的最核心黑科技。
+      }, // 第 1 条结束。
+      { // 第 2 条路由（保护系统）。
+        "ip_cidr": "0.0.0.0/8", // 匹配这个特殊的广播/本地未分配网段。
+        "action": "reject" // 直接拒绝，防止被恶意软件利用进行局域网扫描攻击。
+      }, // 第 2 条结束。
+      { // 第 3 条路由（DNS 劫持路由机制，配合 Inbound 的 hijack 使用）。
+        "type": "logical", // 逻辑判断类型。
+        "mode": "or", // 或（OR）逻辑：满足列表中任意一条即成立。
+        "rules": [ 
+          {
+            "port": 53 // 条件 A：目标端口为 53（传统 DNS）。
+          },
+          {
+            "protocol": "dns" // 条件 B：Sing-box 识别为应用层 DNS 协议的数据（不管端口是不是 53）。
+          }
+        ], 
+        "action": "hijack-dns" // 动作：丢进上文那个庞大复杂的 DNS 模块进行处理，不让它真个流向公网。
+      }, // 第 3 条结束。
+      { // 第 4 条路由（局域网豁免）。
+        "ip_cidr": [ // 匹配常见的局域网 IP 段。
+          "192.168.0.0/16", // 经典家用路由器内网。
+          "172.16.0.0/12", // 经典企业内网/Docker 容器网。
+          "127.0.0.0/8", // 环回地址（本机）。
+          "fe80::/10" // IPv6 本地链路地址。
+        ], 
+        "outbound": "DIRECT" // 动作：局域网互相访问直接通行，绝不能代理，否则无法连接家里的打印机或 NAS。
+      }, // 第 4 条结束。
+      { // 第 5 条路由（针对特定前端公共库）。
+        "domain_suffix": "cdn.jsdelivr.net", // 这个库由于众所周知的原因经常抽风，有时候国内 CDN 好用，有时国外好用。
+        "outbound": "DIRECT" // 这里选择让其强行直连。疑惑：这个设定视各人当地 ISP 而定，有时候走代理反而更快。
+      }, // 第 5 条结束。
+      { // 第 6 条路由（App 专属规则）。
+        "package_name_regex": [ // 根据 Android 系统的包名正则匹配来分流。只在 Android (或借助特殊程序的 Windows) 上有效。
+          "com.tencent.mm", // 微信。
+          "com.tencent.mobileqq", // QQ。
+          "com.taobao.taobao", // 淘宝。
+          "com.eg.android.AlipayGphone", // 支付宝。
+          "com.ss.android.ugc.aweme", // 抖音。
+          "tv.danmaku.bili", // B站。
+          "com.baidu.searchbox", // 百度。
+          "com.xunmeng.pinduoduo", // 拼多多。
+          "com.sina.weibo", // 微博。
+          "com.xingin.xhs", // 小红书。
+          "com.kuaishou.nebula", // 快手。
+          "com.zhihu.android", // 知乎。
+          "com.tencent.qqlive", // 腾讯视频。
+          "com.qiyi.video", // 爱奇艺。
+          "com.alibaba.android.rimet", // 钉钉。
+          "com.jingdong.app.mall", // 京东。
+          "com.sankuai.meituan", // 美团。
+          "com.douban.frodo", // 豆瓣。
+          "com.UCMobile", // UC浏览器。
+          "com.tencent.wework", // 企业微信。
+          "com.netease.cloudmusic", // 网易云音乐。
+          "cn.wps.moffice_eng", // WPS。
+          "com.unionpay", // 云闪付。
+          "com.bankcomm." // 交行等网银应用。
+        ], // 国内全家桶包名结束。
+        "outbound": "🇨🇳 国内流量" // 动作：发现是这些国产毒瘤/刚需 APP 发出的所有网络请求，不管请求什么域名，一律丢进国内组（默认直连）。避免风控封号。
+      }, // 第 6 条结束。
+      { // 第 7 条路由（TG）。
+        "rule_set": [ // 调用外部规则集。
+          "telegram", // TG 的域名规则。
+          "telegram-ip" // TG 庞大的 ASN 和 IP 段规则（因为 TG 服务端经常纯 IP 直连）。
+        ], 
+        "outbound": "📠 Telegram" // 扔给 TG 分流组处理（默认代理）。
+      }, // 第 7 条结束。
+      { // 第 8 条路由（Google 生态）。
+        "rule_set": "Google", // Google 相关全部特征。
+        "outbound": "🧭 Google Services" // 扔给 Google 分流组处理（默认代理）。
+      }, // 第 8 条结束。
+      { // 第 9 条路由（FCM 推送系统专用）。
+        "rule_set": "GoogleFCM", // 安卓推送域名专有特征（如 mtalk.google.com）。
+        "outbound": "📬 Google FCM" // 扔给 FCM 专属通道，保证手机能收到通知。
+      }, // 第 9 条结束。
+      { // 第 10 条路由（流媒体解锁合集）。
+        "rule_set": [ 
+          "netflix", // 网飞。
+          "disney", // 迪士尼。
+          "youtube", // 油管。
+          "spotify", // 声田。
+          "primevideo" // 亚马逊影音。
+        ], 
+        "outbound": "📺 StreamingME" // 扔给流媒体分组处理。
+      }, // 第 10 条结束。
+      { // 第 11 条路由（国内特征兜底直连）。
+        "rule_set": [ 
+          "cn", // 大陆所有域名集合。
+          "cnip", // 大陆所有 IP 段。
+          "games-cn" // 大陆游戏特征。
+        ], 
+        "outbound": "🇨🇳 国内流量" // 扔给国内分组（默认直连）。
+      }, // 第 11 条结束。
+      { // 第 12 条路由（广告及反诈中心拦截）。
+        "rule_set": [ 
+          "geosite_adguard", // 去广告。
+          "geosite-category-ads-all", // 广告大类。
+          "anti_fraud" // 拦截反诈探针上报。
+        ], 
+        "action": "reject" // 【非常关键】：在网络路由层直接将这些连接切断，节省带宽并保护隐私。
+      }, // 第 12 条结束。
+      { // 第 13 条路由（禁用特定 UDP 协议）。
+        "protocol": [ // 匹配应用层协议。
+          "stun", // WebRTC 测穿透常用的 STUN 协议，极易在网页端泄露真实物理 IP（因为很多代理不支持复杂 UDP 代理）。
+          "dtls" // 基于 UDP 的 TLS，部分 QUIC 特征，可能会引发 ISP 的 QoS 限速封锁。
+        ], 
+        "action": "reject", // 动作是拒绝。
+        "method": "drop" // 拒绝方式：不发送目标不可达的 ICMP 包，而是直接丢弃装死（黑洞模式），让探测方以为网络不好从而 fallback 到普通 TCP，提高隐蔽性。
+      }, // 第 13 条结束。
+      { // 第 14 条路由（微软国内服务）。
+        "rule_set": "microsoft-cn", 
+        "outbound": "🪟 Microsoft" 
+      }, // 第 14 条结束。
+      { // 第 15 条路由（苹果国内服务）。
+        "rule_set": "apple-cn", 
+        "outbound": "🍎 Apple" 
+      }, // 第 15 条结束。
+      { // 第 16 条路由（未分类的代理需求集）。
+        "rule_set": [ 
+          "Android", // 谷歌安卓系统底层组件请求。
+          "proxy", // 其他已知被墙的小众网站域名集。
+          "gfw", // 经典防火墙黑名单全集（即旧版的 gfwlist）。
+          "ai", // ChatGPT/Claude/Gemini 等对于 IP 干净度要求极高的 AI 域名。
+          "games", // 外服游戏。
+          "networktest" // 一些国外网络测试站点。
+        ], 
+        "outbound": "GLOBAL" // 统统扔进 GLOBAL（杂项代理组）出海。
+      }, // 第 16 条结束。
+      { // 第 17 条路由（【高级技巧】处理不对称路由和 UDP 接管问题）。
+        "action": "route-options", // 操作：不改变 outbound，而是修改该连接在代理核心内部的底层路由选项。这是为了配合 TUN 的。
+        "udp_disable_domain_unmapping": true, // 关闭 UDP 域名反映射。新版 FakeIP 机制下的细节修复。防止由于 P2P (如 BT 下载) 的纯 IP UDP 包因为查不到 FakeIP 原域名而导致发包失败。
+        "udp_connect": true // 为这部分 UDP 流量启用有状态的 Connect 模型，而非纯粹的 SendTo，能显著提高部分老旧代理协议的 UDP 转发成功率。
+      }, // 第 17 条结束。
+      { // 第 18 条路由（NTP 服务兜底直连）。
+        "protocol": "ntp", // 如果嗅探到是时间同步。
+        "outbound": "DIRECT" // 绝对直连。如果时间戳错了，所有 HTTPS 证书校验都会失败，直接断网。
+      }, // 第 18 条结束。
+      { // 第 19 条路由（Clash 面板兼容 1）。
+        "clash_mode": "direct", // Sing-box 提供了兼容 Clash 控制面板 API 的能力。如果用户在第三方 Dashboard 选择了 "全局直连"。
+        "outbound": "DIRECT" // 则强行导向直连组。
+      }, // 第 19 条结束。
+      { // 第 20 条路由（Clash 面板兼容 2）。
+        "clash_mode": "global", // 如果在面板点击了 "全局代理"。
+        "outbound": "GLOBAL" // 则导向 GLOBAL 分流组出海。
+      }, // 第 20 条结束。
+      { // 第 21 条路由（外网 APP 白名单接管）。
+        "package_name_regex": [ // 匹配纯正的国外 APP。
+          "com.twitter.android", // X (推特)。
+          "com.google.android.youtube", // YouTube。
+          "com.google.android.apps.maps", // 谷歌地图。
+          "com.instagram.android", // IG。
+          "com.facebook.katana", // FB。
+          "com.facebook.orca", // FB Messenger。
+          "com.whatsapp", // WA。
+          "org.telegram.messenger", // TG 原生端。
+          "com.discord", // Discord。
+          "com.reddit.frontpage", // Reddit。
+          "com.spotify.music", // Spotify。
+          "com.netflix.mediaclient", // Netflix。
+          "com.google.android.gm", // Gmail。
+          "com.google.android.apps.docs", // Google Drive。
+          "com.google.android.apps.photos", // Google 照片。
+          "com.google.android.apps.translate", // Google 翻译。
+          "com.google.android.keep", // Google 笔记。
+          "com.snapchat.android", // 阅后即焚。
+          "com.tiktok.", // 国际版抖音。
+          "com.android.vending" // Play 商店核心组件。
+        ], 
+        "outbound": "📦 sing-box" // 如果是这些 APP 产生的流量，无视上面的复杂规则，直接丢进主干线强行代理出海！非常霸道的防漏规则。
+      }, // 第 21 条结束。
+      { // 第 22 条路由（接管 FakeIP 流量）。
+        "ip_cidr": "198.18.0.0/15", // 识别到目标 IP 是之前我们在 DNS 里分配的 FakeIP 段（这说明客户端是要访问某被代理的域名）。
+        "outbound": "📦 sing-box" // 将这些带假 IP 的数据包强制从主代理隧道送走。到了远端服务器，远端会自己做一次真正的 DNS 解析并握手，这就是透明代理的核心理念。
+      }, // 第 22 条结束。
+      { // 第 23 条路由（深度补漏嗅探 1）。
+        "rule_set": "cn", // 中国规则。
+        "invert": true, // 反转。也就是剩余的“非中国未知流量”。
+        "action": "sniff" // 再次执行深度嗅探（防漏网纯 IP 连接）。
+      }, // 第 23 条结束。
+      { // 第 24 条路由（深度补漏嗅探映射 2）。
+        "rule_set": "cn", // 非中国流量。
+        "invert": true, 
+        "action": "route-options", // 修改路由选项。
+        "override_address": "{{ .SniffedDomain }}" // 魔法操作：如果上一步嗅探出了域名，强行用这个刚扒出来的真实域名，覆盖掉该连接原本目的地的那个无意义纯 IP！从而让远端代理节点知道该去连接哪个域名。
+      }, // 第 24 条结束。
+      { // 第 25 条路由（深度补漏出海 3）。
+        "rule_set": "cn", // 非中国流量。
+        "invert": true, 
+        "outbound": "📦 sing-box" // 把处理好的未知流量作为最后一道防线全部打入代理出海。宁可错杀一千（走代理变慢），绝不放过一个（真实 IP 直接去连被墙站点导致被 ISP 封锁）。
+      } // 第 25 条结束。
+    ], // 路由规则列表结束。
+    "rule_set": [ // Rule Set (规则集) 定义开始。这是 1.8.0 之后替代 V2Ray 传统的 geoip/geosite.dat 的现代方案。可以热更新，内存占用极小。
+      { // 第 1 个规则集组（国内与常规规则合集）。
+        "type": "remote", // 类型：远程下载。不必在本地放好 .srs 文件。
+        "tag": [ // 这些 tag 定义了下方 url 中 {tag} 占位符的具体内容，引擎会循环下载此列表里所有的规则文件。
+          "cn", 
+          "cnip", 
+          "private", // 私有局域网 IP。
+          "ads", // 广告。
+          "proxy", // 代理名单。
+          "ai", // AI 名单。
+          "games", // 国外游戏。
+          "microsoft-cn", // 微软中国。
+          "google-cn", // 谷歌中国区特定 IP。
+          "apple-cn", 
+          "games-cn", 
+          "networktest", 
+          "netflix", 
+          "disney", 
+          "youtube", 
+          "spotify", 
+          "primevideo"
+        ], 
+        "url": "https://cdn.jsdelivr.net/gh/DustinWin/ruleset_geodata@sing-box-ruleset/{tag}.srs", // 来源：DustinWin 大佬维护的 geodata 转换仓库。注意使用的是 .srs（Sing-box 专用已编译二进制规则集），比纯文本的 json 规则解析快几百倍。
+        "update_interval": "48h0m0s" // 每隔 48 小时自动请求下载更新。
+      }, // 规则集 1 结束。
+      { // 第 2 个规则集组（Google 等特定规则集）。
+        "type": "remote", 
+        "tag": [ 
+          "Google", 
+          "Android", 
+          "GoogleFCM", 
+          "BlockHttpDNS", // 拦截国内 HTTPDNS 专用名单。
+          "AdGuardSDNSFilter" // AdGuard DNS 过滤专用黑名单。
+        ], 
+        "url": "https://cdn.jsdelivr.net/gh/senshinya/singbox_ruleset@main/rule/{tag}/{tag}.srs", // 另一个大佬维护的针对 Sing-box 特定优化的规则源。
+        "update_interval": "48h0m0s" 
+      }, // 规则集 2 结束。
+      { // 第 3 个规则集组（最核心的防火墙列表和 TG）。
+        "type": "remote", 
+        "tag": [ 
+          "gfw", // 大名鼎鼎的 GFWlist。
+          "telegram" // TG 的全网 CIDR 和域名特征。
+        ], 
+        "url": "https://cdn.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@sing/geo/geosite/{tag}.srs", // 来源于 MetaCubeX (Clash Meta) 官方为了兼容 Sing-box 编译的分支源。权威可靠。
+        "update_interval": "48h0m0s" 
+      }, // 规则集 3 结束。
+      { // 第 4 个规则集（极强广告过滤）。
+        "type": "remote", 
+        "tag": "geosite_adguard", // AdGuard 去广告规则大全集。
+        "url": "https://cdn.jsdelivr.net/gh/217heidai/adblockfilters@main/rules/adblocksingbox.srs", // 来源著名的 217heidai 黑名单源。极大程度屏蔽网页牛皮癣。
+        "update_interval": "48h0m0s" 
+      }, // 规则集 4 结束。
+      { // 第 5 个规则集（纯广告类别补集）。
+        "type": "remote", 
+        "tag": "geosite-category-ads-all", 
+        "url": "https://cdn.jsdelivr.net/gh/SagerNet/sing-geosite@rule-set/geosite-category-ads-all.srs", // SagerNet 官方维护的基础广告组。
+        "update_interval": "48h0m0s" 
+      }, // 规则集 5 结束。
+      { // 第 6 个规则集（反诈中心拦截）。
+        "type": "remote", 
+        "tag": "anti_fraud", 
+        "url": "https://cdn.jsdelivr.net/gh/hwsaya/nothing@main/rules/FuckFZ.json", // 拦截国家反诈中心 APP 的上传和探针直连请求，保护隐私。（注意这里用的是 .json 明文格式规则，解析略慢于 srs 但体量小）。
+        "update_interval": "48h0m0s" 
+      }, // 规则集 6 结束。
+      { // 第 7 个规则集（TG IP补充集）。
+        "type": "remote", 
+        "tag": "telegram-ip", 
+        "url": "https://cdn.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@sing/geo/geoip/telegram.srs", // 针对 TG 极其喜欢用单纯 IP 直连的特点，额外挂载的 GeoIP 规则集补丁。
+        "update_interval": "48h0m0s" 
+      } // 规则集 7 结束。
+    ], // Rule Set 下载定义大列表结束。
+    "final": "🚦 FINAL", // 【兜底路由】：如果上述上百条繁琐的 rules 甚至反向倒推 rules 都没能拦截或放行该流量，直接强行塞入 FINAL 出站（即默认走代理）。
+    "auto_detect_interface": true, // 核心机制：自动检测物理出站接口。省去手动绑物理网卡的麻烦（尤其在 Android 手机上 Wi-Fi 和 5G 随时切换时，该选项保命）。
+    "default_domain_resolver": "alidns-quic", // 默认域名解析器，在某些没有特定 DNS 上下文的情景中发起请求时，使用之前设置的最快的阿里 DoQ 加密解析器。
+    "default_http_client": "default" // 将最上方定义的 HTTP_Client "default" 应用于规则集的下载和健康探测（测速）。
+  }, // 路由整个大模块结束。
+  "experimental": { // 实验性功能配置开始。（在 1.10.x 后，部分实验功能正在逐步并入稳定版，但在目前依然归属于此层级）。
+    "cache_file": { // 本地缓存持久化功能。
+      "enabled": true, // 开启缓存机制。
+      "path": "cache.db", // 缓存文件将被保存至程序运行目录下的 cache.db 数据库文件中（SQLite 等）。
+      "store_fakeip": true, // 【极其重要】：存储并持久化 FakeIP 与真实域名的映射关系！这是很多旧版 Clash/V2ray 用户的痛点。如果不开启，重启手机后，浏览器缓存在本地的 Fake IP 会失效，导致重新访问那些没来得及发起新 DNS 查询的标签页直接报网络错误。开启此功能完美解决重启网络断连问题。
+      "store_dns": true // 开启 DNS 持久化缓存记录，将 optimstic DNS 机制的作用域延长至程序重启后依然生效。
+    } // 缓存配置结束。
+  } // 实验配置结束。
+} // 完整的 Sing-box 配置文件结束！恭喜看完。
