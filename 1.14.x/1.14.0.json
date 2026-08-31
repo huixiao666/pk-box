@@ -1,0 +1,797 @@
+{
+  "log": {
+    "level": "trace",
+    "timestamp": true
+  },
+  "dns": {
+    "servers": [
+      {
+        "type": "hosts",
+        "tag": "hosts_fix",
+        "predefined": {
+          "cloudflare-dns.com": [
+            "1.1.1.1",
+            "1.0.0.1"
+          ],
+          "security.cloudflare-dns.com": [
+            "1.1.1.2",
+            "1.0.0.2"
+          ],
+          "dns.google": [
+            "8.8.8.8",
+            "8.8.4.4"
+          ],
+          "dns.alidns.com": [
+            "223.5.5.5",
+            "223.6.6.6"
+          ],
+          "raw.githubusercontent.com": [
+            "185.199.108.133",
+            "185.199.109.133",
+            "185.199.110.133",
+            "185.199.111.133"
+          ]
+        }
+      },
+      {
+        "type": "local",
+        "tag": "pkpk-dns"
+      },
+      {
+        "type": "udp",
+        "tag": "pk-dns",
+        "server": "192.168.3.1"
+      },
+      {
+        "type": "fakeip",
+        "tag": "fakeip",
+        "inet4_range": "198.18.0.0/15"
+      },
+      {
+        "type": "quic",
+        "tag": "alidns-quic",
+        "detour": "DIRECT",
+        "server": "dns.alidns.com"
+      },
+      {
+        "type": "https",
+        "tag": "cf-dns",
+        "detour": "📦 sing-box",
+        "server": "cloudflare-dns.com"
+      },
+      {
+        "type": "https",
+        "tag": "google-dns",
+        "detour": "📦 sing-box",
+        "server": "dns.google"
+      },
+      {
+        "type": "https",
+        "tag": "cfs-dns",
+        "detour": "📦 sing-box",
+        "server": "security.cloudflare-dns.com"
+      }
+    ],
+    "rules": [
+      {
+        "query_type": [
+          "SVCB",
+          "HTTPS",
+          "PTR"
+        ],
+        "action": "reject",
+        "disable_cache": true
+      },
+      {
+        "domain_suffix": [
+          ".bilivideo.com",
+          ".bilibili.com",
+          ".biliapi.com",
+          ".hdslb.com",
+          ".biliimg.com",
+          ".acgvideo.com"
+        ],
+        "action": "evaluate",
+        "server": "pk-dns",
+        "tag": "bl1"
+      },
+      {
+        "match_response": "bl1",
+        "action": "respond",
+        "race": true
+      },
+      {
+        "domain_suffix": [
+          ".bilivideo.com",
+          ".bilibili.com",
+          ".biliapi.com",
+          ".hdslb.com",
+          ".biliimg.com",
+          ".acgvideo.com"
+        ],
+        "action": "evaluate",
+        "server": "pkpk-dns",
+        "tag": "bl2",
+        "speculative": true
+      },
+      {
+        "match_response": "bl2",
+        "action": "respond",
+        "race": true
+      },
+      {
+        "domain_suffix": [
+          ".miui.com",
+          ".xiaomi.com",
+          ".xiaomiyun.com"
+        ],
+        "action": "evaluate",
+        "server": "pk-dns",
+        "tag": "mi1"
+      },
+      {
+        "match_response": "mi1",
+        "action": "respond",
+        "race": true
+      },
+      {
+        "domain_suffix": [
+          ".miui.com",
+          ".xiaomi.com",
+          ".xiaomiyun.com"
+        ],
+        "action": "evaluate",
+        "server": "pkpk-dns",
+        "tag": "mi2",
+        "speculative": true
+      },
+      {
+        "match_response": "mi2",
+        "action": "respond",
+        "race": true
+      },
+      {
+        "domain": ".googleapis.com",
+        "action": "evaluate",
+        "server": "cfs-dns",
+        "tag": "cfs"
+      },
+      {
+        "domain": ".googleapis.com",
+        "action": "evaluate",
+        "server": "google-dns",
+        "tag": "ga",
+        "speculative": true
+      },
+      {
+        "match_response": "cfs",
+        "action": "respond",
+        "race": true
+      },
+      {
+        "match_response": "ga",
+        "action": "respond",
+        "race": true
+      },
+      {
+        "domain_suffix": [
+          ".pool.ntp.org",
+          ".nist.gov",
+          ".time.apple.com",
+          ".time.google.com",
+          ".time.windows.com"
+        ],
+        "server": "pkpk-dns"
+      },
+      {
+        "rule_set": [
+          "geosite_adguard",
+          "geosite-category-ads-all",
+          "anti_fraud"
+        ],
+        "action": "reject"
+      },
+      {
+        "rule_set": [
+          "BlockHttpDNS",
+          "AdGuardSDNSFilter"
+        ],
+        "action": "reject"
+      },
+      {
+        "rule_set": [
+          "microsoft-cn",
+          "apple-cn",
+          "games-cn"
+        ],
+        "action": "evaluate",
+        "server": "pk-dns",
+        "tag": "gm1"
+      },
+      {
+        "rule_set": [
+          "microsoft-cn",
+          "apple-cn",
+          "games-cn"
+        ],
+        "action": "evaluate",
+        "server": "pkpk-dns",
+        "tag": "gm2",
+        "speculative": true
+      },
+      {
+        "match_response": "gm1",
+        "action": "respond",
+        "race": true
+      },
+      {
+        "match_response": "gm2",
+        "action": "respond",
+        "race": true
+      },
+      {
+        "rule_set": "cn",
+        "action": "evaluate",
+        "server": "pk-dns",
+        "tag": "cn1"
+      },
+      {
+        "match_response": "cn1",
+        "action": "respond",
+        "race": true
+      },
+      {
+        "rule_set": "cn",
+        "action": "evaluate",
+        "server": "pkpk-dns",
+        "tag": "cn2",
+        "speculative": true
+      },
+      {
+        "match_response": "cn2",
+        "action": "respond",
+        "race": true
+      },
+      {
+        "rule_set": "Google",
+        "action": "evaluate",
+        "server": "cf-dns",
+        "tag": "g1"
+      },
+      {
+        "rule_set": "Google",
+        "action": "evaluate",
+        "server": "google-dns",
+        "tag": "g2",
+        "speculative": true
+      },
+      {
+        "match_response": "g1",
+        "action": "respond",
+        "race": true
+      },
+      {
+        "match_response": "g2",
+        "action": "respond",
+        "race": true
+      },
+      {
+        "action": "evaluate",
+        "server": "cf-dns",
+        "tag": "cf"
+      },
+      {
+        "action": "evaluate",
+        "server": "google-dns",
+        "tag": "gg",
+        "speculative": true
+      },
+      {
+        "match_response": "cf",
+        "action": "respond",
+        "race": true
+      },
+      {
+        "match_response": "gg",
+        "action": "respond",
+        "race": true
+      },
+      {
+        "server": "fakeip"
+      }
+    ],
+    "final": "google-dns",
+    "strategy": "ipv4_only",
+    "timeout": "10s",
+    "cache_capacity": 16384,
+    "optimistic": {
+      "enabled": true,
+      "timeout": "5m0s"
+    }
+  },
+  "http_clients": [
+    {
+      "tag": "default",
+      "version": 2,
+      "stream_receive_window": 0,
+      "connection_receive_window": 0
+    }
+  ],
+  "inbounds": [
+    {
+      "type": "tun",
+      "tag": "tun-in",
+      "mtu": 1500,
+      "address": "30.0.0.1/24",
+      "dns_mode": "hijack",
+      "auto_route": true,
+      "auto_redirect": true,
+      "strict_route": true,
+      "exclude_interface": [
+        "wlan1",
+        "ap0"
+      ],
+      "exclude_package": [
+        "com.eg.android.AlipayGphone",
+        "com.tencent.mm",
+        "com.xiaomi.market",
+        "com.taobao.taobao",
+        "com.jingdong.app.mall",
+        "com.ss.android.ugc.aweme",
+        "tv.danmaku.bili",
+        "com.xiaomi.xmsf"
+      ],
+      "udp_timeout": "5m0s",
+      "udp_nat_max": 4096,
+      "stack": "mixed",
+      "endpoint_independent_nat": true
+    }
+  ],
+  "outbounds": [
+    {
+      "type": "direct",
+      "tag": "DIRECT",
+      "domain_resolver": "pk-dns"
+    },
+    {
+      "type": "selector",
+      "tag": "📦 sing-box",
+      "outbounds": [
+        "🟢 自动-测速",
+        "🔵 自动-稳定",
+        "pkpk1",
+        "pkpk2",
+        "pkpk3",
+        "pkpk4",
+        "pkpk5",
+        "pkpk7",
+        "pkpk8",
+        "pkpk9",
+        "pkpk10",
+        "pkpk11",
+        "pkpk12"
+      ],
+      "default": "pkpk3",
+      "interrupt_exist_connections": true
+    },
+    {
+      "type": "urltest",
+      "tag": "🟢 自动-测速",
+      "outbounds": [
+        "pkpk1",
+        "pkpk2",
+        "pkpk3",
+        "pkpk4",
+        "pkpk5",
+        "pkpk7",
+        "pkpk8",
+        "pkpk9",
+        "pkpk10",
+        "pkpk11",
+        "pkpk12"
+      ],
+      "url": "http://www.gstatic.com/generate_204",
+      "interval": "10m0s",
+      "tolerance": 100,
+      "idle_timeout": "30m0s"
+    },
+    {
+      "type": "urltest",
+      "tag": "🔵 自动-稳定",
+      "outbounds": [
+        "pkpk1",
+        "pkpk2",
+        "pkpk3",
+        "pkpk4",
+        "pkpk5",
+        "pkpk7",
+        "pkpk8",
+        "pkpk9",
+        "pkpk10",
+        "pkpk11",
+        "pkpk12"
+      ],
+      "url": "http://www.gstatic.com/generate_204",
+      "interval": "15m0s",
+      "tolerance": 30,
+      "idle_timeout": "1h0m0s"
+    },
+    {
+      "type": "selector",
+      "tag": "🧭 Google Services",
+      "outbounds": [
+        "📦 sing-box",
+        "DIRECT"
+      ],
+      "default": "📦 sing-box",
+      "interrupt_exist_connections": true
+    },
+    {
+      "type": "selector",
+      "tag": "📬 Google FCM",
+      "outbounds": [
+        "📦 sing-box",
+        "DIRECT",
+        "🧭 Google Services"
+      ],
+      "default": "📦 sing-box",
+      "interrupt_exist_connections": true
+    },
+    {
+      "type": "selector",
+      "tag": "🍎 Apple",
+      "outbounds": [
+        "DIRECT",
+        "📦 sing-box"
+      ],
+      "default": "DIRECT",
+      "interrupt_exist_connections": true
+    },
+    {
+      "type": "selector",
+      "tag": "📺 StreamingME",
+      "outbounds": [
+        "📦 sing-box",
+        "DIRECT"
+      ],
+      "default": "📦 sing-box",
+      "interrupt_exist_connections": true
+    },
+    {
+      "type": "selector",
+      "tag": "🪟 Microsoft",
+      "outbounds": [
+        "DIRECT",
+        "📦 sing-box"
+      ],
+      "default": "DIRECT",
+      "interrupt_exist_connections": true
+    },
+    {
+      "type": "selector",
+      "tag": "📠 Telegram",
+      "outbounds": [
+        "📦 sing-box"
+      ],
+      "default": "📦 sing-box",
+      "interrupt_exist_connections": true
+    },
+    {
+      "type": "selector",
+      "tag": "🇨🇳 国内流量",
+      "outbounds": [
+        "DIRECT",
+        "📦 sing-box"
+      ],
+      "default": "DIRECT",
+      "interrupt_exist_connections": true
+    },
+    {
+      "type": "selector",
+      "tag": "GLOBAL",
+      "outbounds": [
+        "📦 sing-box",
+        "DIRECT"
+      ],
+      "default": "📦 sing-box",
+      "interrupt_exist_connections": true
+    },
+    {
+      "type": "selector",
+      "tag": "🚦 FINAL",
+      "outbounds": [
+        "📦 sing-box",
+        "DIRECT",
+        "❌ REJECT-DROP"
+      ],
+      "default": "📦 sing-box",
+      "interrupt_exist_connections": true
+    },
+    {
+      "type": "block",
+      "tag": "❌ REJECT-DROP"
+    },
+    //节点配置
+  ],
+  "route": {
+    "rules": [
+      {
+        "rule_set": "cn",
+        "invert": true,
+        "action": "sniff"
+      },
+      {
+        "ip_cidr": "0.0.0.0/8",
+        "action": "reject"
+      },
+      {
+        "type": "logical",
+        "mode": "or",
+        "rules": [
+          {
+            "port": 53
+          },
+          {
+            "protocol": "dns"
+          }
+        ],
+        "action": "hijack-dns"
+      },
+      {
+        "ip_cidr": [
+          "192.168.0.0/16",
+          "172.16.0.0/12",
+          "127.0.0.0/8",
+          "fe80::/10"
+        ],
+        "outbound": "DIRECT"
+      },
+      {
+        "domain_suffix": "cdn.jsdelivr.net",
+        "outbound": "DIRECT"
+      },
+      {
+        "package_name_regex": [
+          "com.tencent.mm",
+          "com.tencent.mobileqq",
+          "com.taobao.taobao",
+          "com.eg.android.AlipayGphone",
+          "com.ss.android.ugc.aweme",
+          "tv.danmaku.bili",
+          "com.baidu.searchbox",
+          "com.xunmeng.pinduoduo",
+          "com.sina.weibo",
+          "com.xingin.xhs",
+          "com.kuaishou.nebula",
+          "com.zhihu.android",
+          "com.tencent.qqlive",
+          "com.qiyi.video",
+          "com.alibaba.android.rimet",
+          "com.jingdong.app.mall",
+          "com.sankuai.meituan",
+          "com.douban.frodo",
+          "com.UCMobile",
+          "com.tencent.wework",
+          "com.netease.cloudmusic",
+          "cn.wps.moffice_eng",
+          "com.unionpay",
+          "com.bankcomm."
+        ],
+        "outbound": "🇨🇳 国内流量"
+      },
+      {
+        "rule_set": [
+          "telegram",
+          "telegram-ip"
+        ],
+        "outbound": "📠 Telegram"
+      },
+      {
+        "rule_set": "Google",
+        "outbound": "🧭 Google Services"
+      },
+      {
+        "rule_set": "GoogleFCM",
+        "outbound": "📬 Google FCM"
+      },
+      {
+        "rule_set": [
+          "netflix",
+          "disney",
+          "youtube",
+          "spotify",
+          "primevideo"
+        ],
+        "outbound": "📺 StreamingME"
+      },
+      {
+        "rule_set": [
+          "cn",
+          "cnip",
+          "games-cn"
+        ],
+        "outbound": "🇨🇳 国内流量"
+      },
+      {
+        "rule_set": [
+          "geosite_adguard",
+          "geosite-category-ads-all",
+          "anti_fraud"
+        ],
+        "action": "reject"
+      },
+      {
+        "protocol": [
+          "stun",
+          "dtls"
+        ],
+        "action": "reject",
+        "method": "drop"
+      },
+      {
+        "rule_set": "microsoft-cn",
+        "outbound": "🪟 Microsoft"
+      },
+      {
+        "rule_set": "apple-cn",
+        "outbound": "🍎 Apple"
+      },
+      {
+        "rule_set": [
+          "Android",
+          "proxy",
+          "gfw",
+          "ai",
+          "games",
+          "networktest"
+        ],
+        "outbound": "GLOBAL"
+      },
+      {
+        "action": "route-options",
+        "udp_disable_domain_unmapping": true,
+        "udp_connect": true
+      },
+      {
+        "protocol": "ntp",
+        "outbound": "DIRECT"
+      },
+      {
+        "clash_mode": "direct",
+        "outbound": "DIRECT"
+      },
+      {
+        "clash_mode": "global",
+        "outbound": "GLOBAL"
+      },
+      {
+        "package_name_regex": [
+          "com.twitter.android",
+          "com.google.android.youtube",
+          "com.google.android.apps.maps",
+          "com.instagram.android",
+          "com.facebook.katana",
+          "com.facebook.orca",
+          "com.whatsapp",
+          "org.telegram.messenger",
+          "com.discord",
+          "com.reddit.frontpage",
+          "com.spotify.music",
+          "com.netflix.mediaclient",
+          "com.google.android.gm",
+          "com.google.android.apps.docs",
+          "com.google.android.apps.photos",
+          "com.google.android.apps.translate",
+          "com.google.android.keep",
+          "com.snapchat.android",
+          "com.tiktok.",
+          "com.android.vending"
+        ],
+        "outbound": "📦 sing-box"
+      },
+      {
+        "ip_cidr": "198.18.0.0/15",
+        "outbound": "📦 sing-box"
+      },
+      {
+        "rule_set": "cn",
+        "invert": true,
+        "action": "sniff"
+      },
+      {
+        "rule_set": "cn",
+        "invert": true,
+        "action": "route-options",
+        "override_address": "{{ .SniffedDomain }}"
+      },
+      {
+        "rule_set": "cn",
+        "invert": true,
+        "outbound": "📦 sing-box"
+      }
+    ],
+    "rule_set": [
+      {
+        "type": "remote",
+        "tag": [
+          "cn",
+          "cnip",
+          "private",
+          "ads",
+          "proxy",
+          "ai",
+          "games",
+          "microsoft-cn",
+          "google-cn",
+          "apple-cn",
+          "games-cn",
+          "networktest",
+          "netflix",
+          "disney",
+          "youtube",
+          "spotify",
+          "primevideo"
+        ],
+        "url": "https://cdn.jsdelivr.net/gh/DustinWin/ruleset_geodata@sing-box-ruleset/{tag}.srs",
+        "update_interval": "48h0m0s"
+      },
+      {
+        "type": "remote",
+        "tag": [
+          "Google",
+          "Android",
+          "GoogleFCM",
+          "BlockHttpDNS",
+          "AdGuardSDNSFilter"
+        ],
+        "url": "https://cdn.jsdelivr.net/gh/senshinya/singbox_ruleset@main/rule/{tag}/{tag}.srs",
+        "update_interval": "48h0m0s"
+      },
+      {
+        "type": "remote",
+        "tag": [
+          "gfw",
+          "telegram"
+        ],
+        "url": "https://cdn.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@sing/geo/geosite/{tag}.srs",
+        "update_interval": "48h0m0s"
+      },
+      {
+        "type": "remote",
+        "tag": "geosite_adguard",
+        "url": "https://cdn.jsdelivr.net/gh/217heidai/adblockfilters@main/rules/adblocksingbox.srs",
+        "update_interval": "48h0m0s"
+      },
+      {
+        "type": "remote",
+        "tag": "geosite-category-ads-all",
+        "url": "https://cdn.jsdelivr.net/gh/SagerNet/sing-geosite@rule-set/geosite-category-ads-all.srs",
+        "update_interval": "48h0m0s"
+      },
+      {
+        "type": "remote",
+        "tag": "anti_fraud",
+        "url": "https://cdn.jsdelivr.net/gh/hwsaya/nothing@main/rules/FuckFZ.json",
+        "update_interval": "48h0m0s"
+      },
+      {
+        "type": "remote",
+        "tag": "telegram-ip",
+        "url": "https://cdn.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@sing/geo/geoip/telegram.srs",
+        "update_interval": "48h0m0s"
+      }
+    ],
+    "final": "🚦 FINAL",
+    "auto_detect_interface": true,
+    "default_domain_resolver": "alidns-quic",
+    "default_http_client": "default"
+  },
+  "experimental": {
+    "cache_file": {
+      "enabled": true,
+      "path": "cache.db",
+      "store_fakeip": true,
+      "store_dns": true
+    }
+  }
+}
