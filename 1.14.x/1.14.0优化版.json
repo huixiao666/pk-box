@@ -72,7 +72,6 @@
         "action": "reject"
       },
       {
-        "query_client_subnet": "119.134.103.0/24",
         "domain_suffix": [
           ".bilivideo.com",
           ".bilibili.com",
@@ -84,7 +83,6 @@
         "server": "pk-dns"
       },
       {
-        "query_client_subnet": "119.134.103.0/24",
         "domain_suffix": [
           ".miui.com",
           ".xiaomi.com",
@@ -118,7 +116,6 @@
         "action": "reject"
       },
       {
-        "query_client_subnet": "119.134.103.0/24",
         "rule_set": [
           "microsoft-cn",
           "apple-cn",
