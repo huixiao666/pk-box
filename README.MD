@@ -37,4 +37,4 @@
 |--------|------|
 | cn / cnip / proxy / ads / ai / games / microsoft-cn / apple-cn / games-cn / networktest / private | [DustinWin/ruleset_geodata](https://github.com/DustinWin/ruleset_geodata) |
 | gfw | [MetaCubeX/meta-rules-dat](https://github.com/MetaCubeX/meta-rules-dat) |
-| Google / fcm / Android / httpDNS / DNSreject | [senshinya/singbox_ruleset](https://github.com/senshinya/singbox_ruleset) |
+| Google / fcm / Android / httpDNS / DNSreject | [SagerNet/sing-geosite@rule-set](https://github.com/SagerNet/sing-geosite@rule-set) |
