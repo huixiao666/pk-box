@@ -123,10 +123,9 @@
   },
   "http_clients": [
     {
-      "tag": "default",
+      "tag": "rule-set-dl",
       "version": 2,
-      "stream_receive_window": 0,
-      "connection_receive_window": 0
+    "detour": "📦 sing-box"
     }
   ],
   "inbounds": [
@@ -524,12 +523,14 @@
           "primevideo"
         ],
         "url": "https://cdn.jsdelivr.net/gh/DustinWin/ruleset_geodata@sing-box-ruleset/{tag}.srs",
+        "http_client": "rule-set-dl",
         "update_interval": "48h0m0s"
       },
       {
         "type": "remote",
         "tag": "gfw",
         "url": "https://cdn.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@sing/geo/geosite/{tag}.srs",
+        "http_client": "rule-set-dl",
         "update_interval": "48h0m0s"
       },
       {
@@ -540,14 +541,15 @@
           "geosite-googlefcm",
           "geosite-category-ads-all"
         ],
-        "url": "https://ghproxy.net/https://raw.githubusercontent.com/SagerNet/sing-geosite/rule-set/{tag}.srs",
+        "url": "https://cdn.jsdelivr.net/gh/SagerNet/sing-geosite@rule-set/{tag}.srs",
+        "http_client": "rule-set-dl",
         "update_interval": "48h0m0s"
       }
     ],
     "final": "🚦 FINAL",
     "auto_detect_interface": true,
     "default_domain_resolver": "pkpk-dns",
-    "default_http_client": "default"
+    "default_http_client": "rule-set-dl"
   },
   "experimental": {
     "cache_file": {
