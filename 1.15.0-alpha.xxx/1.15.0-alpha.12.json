@@ -60,9 +60,15 @@
       },
       {
         "domain_suffix": [
-          ".miui.com",
-          ".xiaomi.com",
-          ".xiaomiyun.com",
+          ".huawei.com",
+          ".hicloud.com",
+          ".vmall.com",
+          ".huaweicloud.com",
+          ".hwclouds-dns.com",
+          ".dbankcdn.com",
+          ".huawei.cn",
+          ".hwpan.com",
+          ".honor.cn",
           ".bilivideo.com",
           ".bilibili.com",
           ".biliapi.com",
@@ -125,7 +131,7 @@
     {
       "tag": "rule-set-dl",
       "version": 2,
-    "detour": "📦 sing-box"
+      "detour": "📦 sing-box"
     }
   ],
   "inbounds": [
@@ -136,6 +142,10 @@
       "address": "10.8.0.1/24",
       "dns_mode": "hijack",
       "auto_route": true,
+      "route_exclude_address": [
+        "192.168.0.0/16",
+        "172.16.0.0/12"
+      ],
       "udp_timeout": "5m0s",
       "udp_nat_max": 4096,
       "endpoint_independent_nat": true
@@ -288,6 +298,21 @@
         "udp_connect": true
       },
       {
+        "ip_is_private": true,
+        "outbound": "DIRECT"
+      },
+      {
+        "package_name": [
+          "com.huawei.hwid",
+          "com.huawei.hms",
+          "com.huawei.hmos.browser",
+          "com.huawei.appmarket",
+          "com.huawei.android.hwouc",
+          "com.huawei.systemmanager"
+        ],
+        "outbound": "DIRECT"
+      },
+      {
         "package_name": [
           "com.android.vending",
           "com.google.android.gms",
@@ -335,7 +360,7 @@
           "com.taobao.taobao",
           "com.eg.android.AlipayGphone",
           "com.ss.android.ugc.aweme",
-          "com.sohu.inputmethod.sogou.xiaomi",
+          "com.sohu.inputmethod.sogou",
           "tv.danmaku.bili",
           "com.baidu.searchbox",
           "com.xunmeng.pinduoduo",
@@ -393,10 +418,6 @@
         ],
         "action": "reject",
         "method": "drop"
-      },
-      {
-        "ip_is_private": true,
-        "outbound": "DIRECT"
       },
       {
         "ip_cidr": [
