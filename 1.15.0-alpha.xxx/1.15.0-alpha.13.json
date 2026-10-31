@@ -66,6 +66,9 @@
           ".huawei.cn",
           ".hwpan.com",
           ".honor.cn",
+          ".miui.com",
+          ".xiaomi.com",
+          ".xiaomiyun.com",
           ".bilivideo.com",
           ".bilibili.com",
           ".biliapi.com",
@@ -287,6 +290,10 @@
         "action": "hijack-dns"
       },
       {
+        "protocol": "quic",
+        "action": "reject"
+      },
+      {
         "action": "route-options",
         "udp_disable_domain_unmapping": true,
         "udp_connect": true
@@ -294,6 +301,30 @@
       {
         "ip_is_private": true,
         "outbound": "DIRECT"
+      },
+      {
+        "package_name": [
+          "com.android.vending",
+          "com.google.android.gms",
+          "com.google.android.gsf"
+        ],
+        "outbound": "📦 sing-box"
+      },
+      {
+        "domain_suffix": [
+          ".googlevideo.com",
+          ".googleusercontent.com",
+          ".gstatic.com",
+          ".googleapis.com"
+        ],
+        "outbound": "📦 sing-box"
+      },
+      {
+        "domain_suffix": [
+          ".googleapis.cn",
+          ".google.cn"
+        ],
+        "outbound": "📦 sing-box"
       },
       {
         "domain_suffix": [
@@ -396,30 +427,6 @@
           "games-cn"
         ],
         "outbound": "🇨🇳 国内流量"
-      },
-      {
-        "package_name": [
-          "com.android.vending",
-          "com.google.android.gms",
-          "com.google.android.gsf"
-        ],
-        "outbound": "📦 sing-box"
-      },
-      {
-        "domain_suffix": [
-          ".googlevideo.com",
-          ".googleusercontent.com",
-          ".gstatic.com",
-          ".googleapis.com"
-        ],
-        "outbound": "📦 sing-box"
-      },
-      {
-        "domain_suffix": [
-          ".googleapis.cn",
-          ".google.cn"
-        ],
-        "outbound": "📦 sing-box"
       },
       {
         "ip_cidr": "203.208.32.0/19",
